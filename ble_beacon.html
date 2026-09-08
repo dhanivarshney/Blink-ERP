@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SmartRoll — BLE Proof of Concept</title>
+<style>
+  body { font-family: sans-serif; max-width: 480px; margin: 40px auto; padding: 0 16px; }
+  button { padding: 12px 20px; font-size: 16px; margin: 8px 0; width: 100%; cursor: pointer; }
+  #log { background: #f5f5f5; padding: 12px; border-radius: 8px; font-family: monospace;
+         font-size: 13px; white-space: pre-wrap; min-height: 100px; }
+  .role { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+  <h2>📶 SmartRoll — BLE Proof of Concept</h2>
+  <p><b>IMPORTANT:</b> Chrome ya Edge browser use karo. Ye page <code>localhost</code>
+  ya HTTPS pe hi kaam karega. Do devices pe test karo (ya do Chrome profiles).</p>
+
+  <div class="role">
+    <h3>👩‍🏫 Teacher device — Scan for students</h3>
+    <p style="font-size:13px;color:#666;">
+      Note: True "advertising/broadcast" from a browser has very limited support.
+      This POC uses the more reliable pattern instead — the STUDENT device
+      advertises itself (via a page interaction) and the TEACHER device scans
+      for nearby Bluetooth devices to detect presence. This is what to test first.
+    </p>
+    <button onclick="startScan()">🔍 Start Scanning for Students</button>
+  </div>
+
+  <div class="role">
+    <h3>🧑‍🎓 Student device — Make yourself discoverable</h3>
+    <p style="font-size:13px;color:#666;">
+      Tap this so the teacher's scan can find this device (uses the browser's
+      device-picker as the permission step Web Bluetooth requires).
+    </p>
+    <button onclick="advertiseSelf()">📡 Make Discoverable</button>
+  </div>
+
+  <h3>Log</h3>
+  <div id="log">Waiting...</div>
+
+  <script>
+    const log = (msg) => {
+      const el = document.getElementById('log');
+      el.textContent += "\n" + new Date().toLocaleTimeString() + " — " + msg;
+    };
+
+    if (!navigator.bluetooth) {
+      log("❌ Web Bluetooth NOT supported in this browser. Use Chrome/Edge on desktop or Android.");
+    } else {
+      log("✅ Web Bluetooth API available. Ready to test.");
+    }
+
+    async function startScan() {
+      try {
+        log("Opening device picker (teacher side)...");
+        // acceptAllDevices lets us see any nearby BLE device for this POC.
+        // In the real build, filter by a custom service UUID unique to SmartRoll.
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: []
+        });
+        log(`✅ Found device: ${device.name || "(unnamed)"} [id: ${device.id}]`);
+        log("→ In the real app: match this against the student roster and call mark_attendance().");
+      } catch (err) {
+        log("⚠️ Scan cancelled or failed: " + err.message);
+      }
+    }
+
+    async function advertiseSelf() {
+      try {
+        log("Requesting this device to be discoverable...");
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true
+        });
+        log(`✅ This device is now visible as: ${device.name || "(unnamed)"}`);
+        log("→ Keep this tab open during class so the teacher's scan can find it.");
+      } catch (err) {
+        log("⚠️ Failed: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

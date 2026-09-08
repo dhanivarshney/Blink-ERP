@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#070b13" />
+  <title>SmartRoll — BLE Attendance Platform</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234f46e5'/%3E%3Cstop offset='1' stop-color='%239333ea'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='32' r='13' fill='none' stroke='white' stroke-width='4'/%3E%3Cpath d='M32 12v9M32 43v9M12 32h9M43 32h9' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- ═══════ BG PARTICLES ═══════ -->
+  <div class="bg-particles" id="bgParticles"></div>
+
+  <!-- ═══════ START SESSION MODAL ═══════ -->
+  <div id="sessionModal" class="modal-overlay hidden" onclick="if(event.target===this)closeSessionModal()">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>🚀 Start New Session</h2>
+        <button class="btn-x" onclick="closeSessionModal()" style="font-size:18px;">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint">Select branch, section and enter subject to start a live attendance session.</p>
+        <div class="form-group">
+          <label for="sessionBranch">Branch / Department</label>
+          <select id="sessionBranch">
+            <option value="">Select Branch</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sessionSection">Section</label>
+          <select id="sessionSection">
+            <option value="">Select Section</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sessionSubject">Subject</label>
+          <input id="sessionSubject" placeholder="e.g. Data Structures, DBMS" />
+        </div>
+        <button class="btn-glow" onclick="submitNewSession()" id="sessionSubmitBtn" style="width:100%;margin-top:8px;">🚀 Start Session</button>
+        <p class="modal-error hidden" id="sessionError"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ LANDING ═══════ -->
+  <div id="page-landing" class="page active">
+    <div class="landing-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+    <div class="landing-content">
+      <div class="landing-badge">🎓 Hackathon Project — BLE Attendance</div>
+      <div class="landing-logo">
+        <div class="logo-pulse"></div>
+        <div class="logo-pulse delay"></div>
+        <div class="logo-icon">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/></svg>
+        </div>
+      </div>
+      <h1 class="landing-title">
+        <span class="title-line" style="--d:0">Smart</span>
+        <span class="title-line accent" style="--d:1">Roll</span>
+      </h1>
+      <p class="landing-sub">Bluetooth Low Energy Attendance System</p>
+      <div class="landing-features">
+        <div class="feature-pill"><span>📡</span> Real BLE Detection</div>
+        <div class="feature-pill"><span>⚡</span> Auto Marking</div>
+        <div class="feature-pill"><span>📊</span> Live Dashboard</div>
+        <div class="feature-pill"><span>🔒</span> Anti-Spoofing</div>
+      </div>
+      <button class="landing-cta" onclick="showPage('auth')">
+        Enter Dashboard <span>→</span>
+      </button>
+      <p class="landing-footer-text">No fake simulation &nbsp;•&nbsp; Real devices only &nbsp;•&nbsp; Hackathon Demo</p>
+    </div>
+  </div>
+
+  <!-- ═══════ AUTH ═══════ -->
+  <div id="page-auth" class="page">
+    <div class="auth-container">
+      <div class="auth-card-wrap">
+        <div class="auth-left">
+          <div class="auth-brand">
+            <div class="logo-icon small">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/></svg>
+            </div>
+            <span>Smart <b>Roll</b></span>
+          </div>
+          <h2>Welcome<br />Back 👋</h2>
+          <p>Sign in to manage attendance, watch BLE signals live, and explore analytics — all in one dashboard.</p>
+          <div class="auth-illustration">
+            <div class="illust-card"><div class="illust-icon">📡</div><span class="illust-text">BLE Scan &amp; detect students</span></div>
+            <div class="illust-card"><div class="illust-icon">✅</div><span class="illust-text">One-tap auto attendance</span></div>
+            <div class="illust-card"><div class="illust-icon">📊</div><span class="illust-text">Live analytics &amp; reports</span></div>
+          </div>
+        </div>
+        <div class="auth-right">
+          <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+            <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+          </div>
+
+          <form id="loginForm" class="auth-form" onsubmit="return handleLogin(event)">
+            <h3>Sign In</h3>
+            <p class="auth-hint">Enter your credentials to access the dashboard</p>
+            <div class="form-group">
+              <label for="loginName">Full Name</label>
+              <input type="text" id="loginName" placeholder="e.g. Mr. Sharma" required />
+            </div>
+            <div class="form-group">
+              <label for="loginPass">Password</label>
+              <input type="password" id="loginPass" placeholder="••••••••" required />
+            </div>
+            <div class="form-group">
+              <label>Login as</label>
+              <div class="role-select">
+                <button type="button" class="role-btn active" data-role="teacher" onclick="selectRole(this,'login')">👨‍🏫 Teacher</button>
+                <button type="button" class="role-btn" data-role="student" onclick="selectRole(this,'login')">🎓 Student</button>
+                <button type="button" class="role-btn" data-role="admin" onclick="selectRole(this,'login')">⚙️ Admin</button>
+              </div>
+            </div>
+            <input type="hidden" id="loginRole" value="teacher" />
+            <button type="submit" class="auth-submit">Sign In <span>→</span></button>
+            <p class="auth-error hidden" id="loginError"></p>
+          </form>
+
+          <form id="registerForm" class="auth-form hidden" onsubmit="return handleRegister(event)">
+            <h3>Create Account</h3>
+            <p class="auth-hint">Register as teacher or student</p>
+            <div class="form-group">
+              <label for="regName">Full Name</label>
+              <input type="text" id="regName" placeholder="e.g. Aarav Sharma" required />
+            </div>
+            <div class="form-group">
+              <label for="regPass">Password</label>
+              <input type="password" id="regPass" placeholder="Min 4 characters" required />
+            </div>
+            <div class="form-group">
+              <label>Register as</label>
+              <div class="role-select">
+                <button type="button" class="role-btn active" data-role="teacher" onclick="selectRole(this,'register')">👨‍🏫 Teacher</button>
+                <button type="button" class="role-btn" data-role="student" onclick="selectRole(this,'register')">🎓 Student</button>
+              </div>
+            </div>
+            <input type="hidden" id="regRole" value="teacher" />
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="regCourse">Course</label>
+                <select id="regCourse">
+                  <option value="">Select</option>
+                  <option>B.Tech</option><option>B.Pharma</option><option>BCA</option><option>MBA</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="regYear">Year</label>
+                <select id="regYear">
+                  <option value="">Select</option>
+                  <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="regBranch">Branch</label>
+                <select id="regBranch">
+                  <option value="">Select</option>
+                  <option>CSE</option><option>ECE</option><option>ME</option><option>CE</option><option>IT</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="regSection">Section</label>
+                <select id="regSection">
+                  <option value="">Select</option>
+                  <option>A</option><option>B</option><option>C</option><option>D</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="auth-submit">Create Account <span>→</span></button>
+            <p class="auth-error hidden" id="regError"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ MAIN APP ═══════ -->
+  <div id="page-app" class="page">
+    <div class="app-layout">
+
+      <!-- ── Sidebar ── -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="logo-icon tiny">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/></svg>
+          </div>
+          <span class="brand-text">Smart <b>Roll</b></span>
+          <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+        </div>
+
+        <div class="sidebar-user" id="sidebarUser">
+          <div class="user-avatar" id="userAvatar">TS</div>
+          <div class="user-info">
+            <div class="user-name" id="userName">Teacher</div>
+            <div class="user-role" id="userRole">👨‍🏫 Teacher</div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section-label" data-roles="teacher,student,admin">Main</div>
+          <button class="nav-item active" data-view="dashboard" data-roles="teacher,student,admin" onclick="switchView('dashboard')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.6"/><rect x="14" y="3" width="7" height="5" rx="1.6"/><rect x="14" y="12" width="7" height="9" rx="1.6"/><rect x="3" y="16" width="7" height="5" rx="1.6"/></svg>
+            Dashboard
+          </button>
+          <button class="nav-item" data-view="live" data-roles="teacher,student" onclick="switchView('live')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Live Session
+          </button>
+          <button class="nav-item" data-view="my-attendance" data-roles="student" onclick="switchView('my-attendance')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            My Attendance
+          </button>
+          <button class="nav-item" data-view="students" data-roles="teacher,student,admin" onclick="switchView('students')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Students
+          </button>
+          <button class="nav-item" data-view="sessions" data-roles="teacher,student,admin" onclick="switchView('sessions')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Sessions
+          </button>
+          <div class="nav-section-label" data-roles="teacher,admin">Analytics</div>
+          <button class="nav-item" data-view="analytics" data-roles="teacher,admin" onclick="switchView('analytics')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+            Analytics
+          </button>
+          <div class="nav-section-label" data-roles="teacher,student">Resources</div>
+          <button class="nav-item" data-view="notes" data-roles="teacher,student" onclick="switchView('notes')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            Notes
+          </button>
+          <button class="nav-item" data-view="pyq" data-roles="teacher,student" onclick="switchView('pyq')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            PYQ Papers
+          </button>
+          <div class="nav-section-label" data-roles="admin">Manage</div>
+          <button class="nav-item" data-view="admin" data-roles="admin" onclick="switchView('admin')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            Admin Panel
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="nav-item logout" onclick="handleLogout()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+      <!-- ── Main Content ── -->
+      <main class="main-content" id="mainContent">
+
+        <!-- ─── DASHBOARD ─── -->
+        <div id="view-dashboard" class="view active">
+          <div class="view-header gradient-header">
+            <div>
+              <p class="header-eyebrow">Overview</p>
+              <h1 id="dashGreeting">Good Morning 👋</h1>
+              <p class="header-sub">Here's your attendance overview for today</p>
+            </div>
+            <div class="header-actions" id="dashActions">
+              <button class="btn-glow pulse-btn" onclick="startNewSession()">＋ Start Session</button>
+            </div>
+          </div>
+
+          <div class="stats-row" id="dashStats"></div>
+
+          <div class="live-banner" id="liveBanner" style="display:none;">
+            <div class="live-banner-pulse"></div>
+            <div class="live-banner-content">
+              <span class="live-dot-glow"></span>
+              <div>
+                <strong>LIVE SESSION ACTIVE</strong>
+                <p id="liveBannerText">BLE scanning in progress — students auto-detected</p>
+              </div>
+              <button class="btn-glow sm" onclick="switchView('live')">View Live →</button>
+            </div>
+          </div>
+
+          <!-- Live Attendance Feed (appears when session is active) -->
+          <div id="dashLiveFeed" style="display:none;">
+            <div class="card" style="margin-bottom:18px;">
+              <div class="card-head">
+                <h3>🔴 Live Attendance Feed</h3>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span class="badge live-badge-sm" id="dashLiveCount">0 Present</span>
+                  <div class="ble-status-badge" id="dashBleBadge">
+                    <span class="ble-status-dot"></span>
+                    <span>SCANNING</span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body" id="dashLiveFeedList">
+                <div class="empty-state">
+                  <div class="empty-icon">📡</div>
+                  <strong>Waiting for BLE detections...</strong>
+                  <p>Students will appear here in real-time</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>Attendance Overview</h3></div>
+              <div class="card-body"><canvas id="dashPieChart"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Weekly Trend</h3></div>
+              <div class="card-body"><canvas id="dashLineChart"></canvas></div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head">
+                <h3>Recent Sessions</h3>
+                <button class="btn-sm" onclick="switchView('sessions')">View All →</button>
+              </div>
+              <div class="card-body" id="recentSessions"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Top Students</h3></div>
+              <div class="card-body" id="topStudentsDash"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── MY ATTENDANCE (Student) ─── -->
+        <div id="view-my-attendance" class="view">
+          <div class="view-header gradient-header">
+            <div>
+              <p class="header-eyebrow">My Records</p>
+              <h1>My Attendance</h1>
+              <p class="header-sub" id="myAttSubtitle">Your attendance history across all sessions</p>
+            </div>
+          </div>
+          <div class="stats-row" id="myAttStats"></div>
+          <div class="card" style="margin-bottom:18px;">
+            <div class="card-head">
+              <h3>Attendance History</h3>
+              <button class="btn-outline sm" onclick="exportMyAttendanceCSV()">⬇ Export CSV</button>
+            </div>
+            <div class="card-body" id="myAttList"></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>Attendance Trend</h3></div>
+              <div class="card-body"><canvas id="myAttChart"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Subject-wise</h3></div>
+              <div class="card-body"><canvas id="myAttSubChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── LIVE SESSION ─── -->
+        <div id="view-live" class="view">
+          <div class="view-header gradient-header">
+            <div>
+              <p class="header-eyebrow"><span class="live-dot-glow"></span> Real-time</p>
+              <h1>Live BLE Session</h1>
+              <p class="header-sub" id="liveViewStatus">No active session — start one to begin BLE scanning</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn-glow pulse-btn" onclick="startNewSession()">＋ Start Session</button>
+            </div>
+          </div>
+
+          <div class="ble-radar-section">
+            <div class="card">
+              <div class="card-head">
+                <h3>BLE Radar Scanner</h3>
+                <div class="ble-status-badge" id="bleStatusBadge">
+                  <span class="ble-status-dot"></span>
+                  <span id="bleStatusTextBadge">IDLE</span>
+                </div>
+              </div>
+              <div class="card-body" style="display:flex;align-items:center;justify-content:center;gap:38px;flex-wrap:wrap;">
+                <div class="ble-radar-container" id="bleRadar">
+                  <div class="radar-ring ring-1"></div>
+                  <div class="radar-ring ring-2"></div>
+                  <div class="radar-ring ring-3"></div>
+                  <div class="radar-sweep"></div>
+                  <div class="radar-center">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/></svg>
+                  </div>
+                  <div id="radarDots" class="radar-dots"></div>
+                </div>
+                <div class="ble-controls">
+                  <button class="btn-glow" id="bleToggleBtn" onclick="toggleBLE()">▶ Start Scan</button>
+                  <p style="color:var(--muted);font-size:13px;margin-top:8px;" id="bleStatusText">Scanner ready</p>
+                  <div class="ble-device-count" id="bleDeviceCount">
+                    <span class="device-count-num" id="deviceCountNum">0</span>
+                    <span class="device-count-label">Devices Found</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="live-stats-row" id="liveStats"></div>
+
+          <div class="card" style="margin-bottom:18px;">
+            <div class="card-head">
+              <h3>Live Attendance Feed</h3>
+              <span class="badge live-badge-sm" id="livePresentCount">0 Present</span>
+            </div>
+            <div class="card-body" id="liveFeed">
+              <div class="empty-state">
+                <div class="empty-icon">📡</div>
+                <strong>Waiting for BLE detections...</strong>
+                <p>Start a session and enable BLE scan to see students appear in real-time</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Full Roster</h3>
+              <button class="btn-outline sm" onclick="exportCSV()">⬇ Export CSV</button>
+            </div>
+            <div class="card-body" id="liveRoster"></div>
+          </div>
+        </div>
+
+        <!-- ─── STUDENTS ─── -->
+        <div id="view-students" class="view">
+          <div class="view-header">
+            <div>
+              <h1>Students</h1>
+              <p class="header-sub">All registered students across branches &amp; sections</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h3>All Students</h3>
+              <span class="badge" id="studentCountBadge">0</span>
+            </div>
+            <div class="card-body" id="studentsList"></div>
+          </div>
+        </div>
+
+        <!-- ─── SESSIONS ─── -->
+        <div id="view-sessions" class="view">
+          <div class="view-header">
+            <div>
+              <h1>Sessions</h1>
+              <p class="header-sub">Every attendance session ever conducted</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn-glow" onclick="startNewSession()">＋ New Session</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body" id="sessionsList"></div>
+          </div>
+        </div>
+
+        <!-- ─── ANALYTICS ─── -->
+        <div id="view-analytics" class="view">
+          <div class="view-header gradient-header purple">
+            <div>
+              <p class="header-eyebrow">Insights</p>
+              <h1>Analytics</h1>
+              <p class="header-sub">Deep dive into attendance data</p>
+            </div>
+          </div>
+          <div class="stats-row" id="analyticsStats"></div>
+          <div class="grid-2">
+            <div class="card"><div class="card-head"><h3>Present vs Absent</h3></div><div class="card-body"><canvas id="anaPieChart"></canvas></div></div>
+            <div class="card"><div class="card-head"><h3>BLE vs Manual</h3></div><div class="card-body"><canvas id="anaBleChart"></canvas></div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card"><div class="card-head"><h3>Subject-wise Attendance</h3></div><div class="card-body"><canvas id="anaSubChart"></canvas></div></div>
+            <div class="card"><div class="card-head"><h3>Branch-wise Attendance</h3></div><div class="card-body"><canvas id="anaDeptChart"></canvas></div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card"><div class="card-head"><h3>Weekly Pattern</h3></div><div class="card-body"><canvas id="anaWeekChart"></canvas></div></div>
+            <div class="card"><div class="card-head"><h3>Monthly Trend</h3></div><div class="card-body"><canvas id="anaMonthChart"></canvas></div></div>
+          </div>
+          <div class="card" style="margin-top:18px;">
+            <div class="card-head"><h3>Top Performers</h3></div>
+            <div class="card-body" id="topPerformersAna"></div>
+          </div>
+        </div>
+
+        <!-- ─── NOTES ─── -->
+        <div id="view-notes" class="view">
+          <div class="view-header gradient-header green">
+            <div>
+              <p class="header-eyebrow">Resources</p>
+              <h1>Notes &amp; PDFs</h1>
+              <p class="header-sub">Upload and share study materials with your class</p>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:18px;" id="noteUploadCard">
+            <div class="card-head"><h3>Upload New Note</h3></div>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="form-group"><label for="noteTitle">Title</label><input id="noteTitle" placeholder="e.g. Chapter 5 Notes" /></div>
+                <div class="form-group"><label for="noteSubject">Subject</label><input id="noteSubject" placeholder="e.g. DBMS" /></div>
+                <div class="form-group"><label for="noteBranch">Branch</label><input id="noteBranch" placeholder="e.g. CSE" /></div>
+                <div class="form-group"><label for="noteSection">Section</label><input id="noteSection" placeholder="e.g. A" /></div>
+              </div>
+              <textarea id="noteContent" class="textarea-field" placeholder="Description (optional)" rows="2"></textarea>
+              <div class="file-drop" id="fileDropArea" onclick="document.getElementById('noteFile').click()">
+                <input type="file" id="noteFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.png,.jpg" style="display:none;" />
+                <div id="fileDropContent">
+                  <span style="font-size:26px;">📎</span>
+                  <p><strong>Click to upload</strong> or drag &amp; drop</p>
+                  <small>PDF, DOC, PPT, Images</small>
+                </div>
+                <div id="fileDropPreview" class="hidden">
+                  <span>📄</span>
+                  <span id="fileDropName"></span>
+                  <button onclick="event.stopPropagation();clearFile()" class="btn-x">✕</button>
+                </div>
+              </div>
+              <button class="btn-glow" onclick="uploadNote()" style="margin-top:14px;width:100%;">Upload Note →</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Uploaded Notes</h3>
+              <span class="badge" id="notesCount">0</span>
+            </div>
+            <div class="card-body" id="notesList"></div>
+          </div>
+        </div>
+
+        <!-- ─── PYQ ─── -->
+        <div id="view-pyq" class="view">
+          <div class="view-header gradient-header">
+            <div>
+              <p class="header-eyebrow" style="color:#fbbf24;">Resources</p>
+              <h1>Previous Year Papers</h1>
+              <p class="header-sub">Access PYQ papers on Google Drive</p>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:18px;">
+            <div class="card-body" style="text-align:center; padding:3rem 2rem;">
+              <div style="font-size:4rem; margin-bottom:1rem;">📚</div>
+              <h2 style="color:var(--text); margin:0 0 0.5rem;">PYQ Paper Bank</h2>
+              <p style="color:var(--muted); font-size:14px; margin:0 0 1.5rem; max-width:400px; margin-left:auto; margin-right:auto;">All Previous Year Question Papers organized on Google Drive.</p>
+              <a href="https://drive.google.com/drive/folders/1eTxp4mDjGcuDexieUMYrfqAuKBG3S46n" target="_blank" rel="noopener" class="btn-glow" style="display:inline-flex; align-items:center; gap:8px; padding:14px 32px; font-size:15px; text-decoration:none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Open All PYQs
+              </a>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>📂 Semester-wise PYQs</h3></div>
+            <div class="card-body">
+              <div class="semester-grid" id="semesterFilters">
+                <a href="https://drive.google.com/drive/folders/15bkgrVGA5s5Mh1q9l2KLMW9HIboPJ9Vb" target="_blank" class="sem-card" style="text-decoration:none;"><span class="sem-icon">📘</span><span class="sem-name">1st Sem</span></a>
+                <a href="https://drive.google.com/drive/folders/1Rq-lxFVc5_ZEAMXCw6W2enBd-pUQPlWW" target="_blank" class="sem-card" style="text-decoration:none;"><span class="sem-icon">📗</span><span class="sem-name">2nd Sem</span></a>
+                <a href="https://drive.google.com/drive/folders/1RjrS65gXzj3e8WgEuupoKvORYIkaN0gy" target="_blank" class="sem-card" style="text-decoration:none;"><span class="sem-icon">📙</span><span class="sem-name">3rd Sem</span></a>
+                <a href="https://drive.google.com/drive/folders/1YnOHoSe6hTj-5ay8jJQBV82Ccd_FzPq7" target="_blank" class="sem-card" style="text-decoration:none;"><span class="sem-icon">📕</span><span class="sem-name">4th Sem</span></a>
+                <a href="https://drive.google.com/drive/folders/1LamJnDD42nB0bVJjBYOuippVBMHJoKbP" target="_blank" class="sem-card" style="text-decoration:none;"><span class="sem-icon">📓</span><span class="sem-name">5th Sem</span></a>
+                <a href="https://drive.google.com/drive/folders/196BrUsA15q_rlmlLMkz_32GkjhrOuYn9" target="_blank" class="sem-card" style="text-decoration:none;"><span class="sem-icon">📔</span><span class="sem-name">6th Sem</span></a>
+                <a href="https://drive.google.com/drive/folders/1Q1BR4mNFJuHMskY5pRvNmUrSe8BsvnGS" target="_blank" class="sem-card" style="text-decoration:none;"><span class="sem-icon">📒</span><span class="sem-name">7th Sem</span></a>
+                <a href="https://drive.google.com/drive/folders/1CJEx6OYmyeM6dkCJVKJgY7o1UM46d6aa" target="_blank" class="sem-card" style="text-decoration:none;"><span class="sem-icon">📕</span><span class="sem-name">8th Sem</span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── ADMIN ─── -->
+        <div id="view-admin" class="view">
+          <div class="view-header">
+            <div>
+              <h1>Admin Panel</h1>
+              <p class="header-sub">Manage departments, sections, students &amp; users</p>
+            </div>
+          </div>
+
+          <div class="admin-tabs-row">
+            <button class="atab active" onclick="switchAdminTab('adminDepts',this)">Departments</button>
+            <button class="atab" onclick="switchAdminTab('adminSecs',this)">Sections</button>
+            <button class="atab" onclick="switchAdminTab('adminStu',this)">Students</button>
+            <button class="atab" onclick="switchAdminTab('adminUsers',this)">Users</button>
+            <button class="atab" onclick="refreshAdminData()" style="margin-left:auto; background:rgba(16,185,129,0.12); color:#6ee7b7;">↻ Refresh</button>
+          </div>
+
+          <div id="adminDepts" class="admin-panel">
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-body">
+                <div class="form-inline">
+                  <input id="newDeptName" placeholder="Department name (e.g. CSE)" />
+                  <button class="btn-glow" onclick="addDept()">Add</button>
+                </div>
+              </div>
+            </div>
+            <div class="card"><div class="card-body" id="deptList"></div></div>
+          </div>
+
+          <div id="adminSecs" class="admin-panel hidden">
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-body">
+                <div class="form-row-2">
+                  <div class="form-group"><label for="secDeptSelect">Department</label><select id="secDeptSelect"></select></div>
+                  <div class="form-group">
+                    <label for="newSecName">New Section</label>
+                    <div class="form-inline"><input id="newSecName" placeholder="Section (e.g. A)" /><button class="btn-glow" onclick="addSec()">Add</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card"><div class="card-body" id="secList"></div></div>
+          </div>
+
+          <div id="adminStu" class="admin-panel hidden">
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-body">
+                <div class="form-grid-3">
+                  <input id="stuName" placeholder="Full name" />
+                  <input id="stuRoll" placeholder="Roll (e.g. CSE-A-001)" />
+                  <select id="stuDept" onchange="loadStuSections()"></select>
+                  <select id="stuSection"></select>
+                  <input id="stuBle" placeholder="BLE MAC (optional)" />
+                </div>
+                <button class="btn-glow" onclick="addStudent()" style="margin-top:14px;">Add Student</button>
+              </div>
+            </div>
+            <div class="card"><div class="card-body" id="stuList"></div></div>
+          </div>
+
+          <div id="adminUsers" class="admin-panel hidden">
+            <div class="card"><div class="card-body" id="userList"></div></div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Palette -->
+    <color name="primary">#667EEA</color>
+    <color name="primary_dark">#5A67D8</color>
+    <color name="primary_light">#818CF8</color>
+    <color name="accent">#764BA2</color>
+    
+    <!-- Gradient Colors -->
+    <color name="gradient_start">#667EEA</color>
+    <color name="gradient_end">#764BA2</color>
+    <color name="gradient_green_start">#00C853</color>
+    <color name="gradient_green_end">#00E676</color>
+    <color name="gradient_red_start">#FF5252</color>
+    <color name="gradient_red_end">#FF8A80</color>
+    <color name="gradient_orange_start">#FF6D00</color>
+    <color name="gradient_orange_end">#FFAB40</color>
+    
+    <!-- Surface Colors (Dark Theme) -->
+    <color name="bg_dark">#0F0C29</color>
+    <color name="bg_dark_mid">#1A1A3E</color>
+    <color name="bg_dark_end">#24243E</color>
+    <color name="surface">#1E1E3F</color>
+    <color name="surface_light">#2A2A50</color>
+    <color name="surface_elevated">#32325A</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#D1D8E5</color>
+    <color name="text_muted">#A0A8C1</color>
+    <color name="text_accent">#818CF8</color>
+    
+    <!-- Status Colors -->
+    <color name="success">#00C853</color>
+    <color name="success_bg">#1A3D1A</color>
+    <color name="warning">#FFAB40</color>
+    <color name="warning_bg">#3D2E0A</color>
+    <color name="danger">#FF5252</color>
+    <color name="danger_bg">#3D1A1A</color>
+    <color name="info">#2196F3</color>
+    <color name="info_bg">#0A1E3D</color>
+    
+    <!-- Card Colors -->
+    <color name="card_bg">#1A1A3E</color>
+    <color name="card_border">#2A2A50</color>
+    <color name="card_highlight">#252550</color>
+    
+    <!-- Legacy (kept for compatibility) -->
+    <color name="red">#FF5252</color>
+    <color name="ink">#FFFFFF</color>
+    <color name="muted">#6B7394</color>
+    <color name="line">#2A2A50</color>
+    <color name="white">#FFFFFF</color>
+    <color name="bg">#0F0C29</color>
+</resources>

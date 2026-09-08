@@ -1,0 +1,82 @@
+[
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/fragment_pyq.xml",
+        "source": "com.smartroll.app-main-54:/layout/fragment_pyq.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/fragment_profile.xml",
+        "source": "com.smartroll.app-main-54:/layout/fragment_profile.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_login.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/item_row.xml",
+        "source": "com.smartroll.app-main-54:/layout/item_row.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/fragment_analytics.xml",
+        "source": "com.smartroll.app-main-54:/layout/fragment_analytics.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_people.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_people.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_history.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_history.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_notes.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_notes.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_dashboard.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_dashboard.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_pyq.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_pyq.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/fragment_students.xml",
+        "source": "com.smartroll.app-main-54:/layout/fragment_students.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/fragment_home.xml",
+        "source": "com.smartroll.app-main-54:/layout/fragment_home.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_register.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_register.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/fragment_notes.xml",
+        "source": "com.smartroll.app-main-54:/layout/fragment_notes.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_splash.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_splash.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_main.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_teacher.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_teacher.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_student.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_student.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/item_banner.xml",
+        "source": "com.smartroll.app-main-54:/layout/item_banner.xml"
+    },
+    {
+        "merged": "com.smartroll.app-mergeDebugResources-51:/layout/activity_admin.xml",
+        "source": "com.smartroll.app-main-54:/layout/activity_admin.xml"
+    }
+]

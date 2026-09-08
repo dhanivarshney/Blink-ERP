@@ -1,0 +1,4 @@
+com.smartroll.test.app-androidTest-0 C:\Users\hp\smart_attend_web\android_app\app\build\generated\res\resValues\androidTest\debug
+com.smartroll.test.app-mergeDebugAndroidTestResources-1 C:\Users\hp\smart_attend_web\android_app\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.smartroll.test.app-mergeDebugAndroidTestResources-2 C:\Users\hp\smart_attend_web\android_app\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.smartroll.test.app-merged_res-3 C:\Users\hp\smart_attend_web\android_app\app\build\intermediates\merged_res\debugAndroidTest
