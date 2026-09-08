@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Smart Attend
 
 A teacher-focused classroom attendance prototype built with **Python + Flask**. Attendance records are stored in the browser with `localStorage`, so no login, database, or backend setup is required.
@@ -82,3 +83,7 @@ Extension points are marked `# FUTURE:` in `database.py` and `app.py`.
 - A teacher can always mark students present manually.
 - Completed sessions persist in browser `localStorage` and can be exported as ERP-ready CSV files.
 - Production Android app will add real Bluetooth Low Energy detection.
+=======
+# Blink-ERP
+Blutooth based attendence system
+>>>>>>> 6c1999bef04cc0652d782de20abbfbcb474e4c8c
