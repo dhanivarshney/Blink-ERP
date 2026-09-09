@@ -54,6 +54,9 @@ public final class ActivityRegisterBinding implements ViewBinding {
   public final Spinner spYear;
 
   @NonNull
+  public final TextView tvRegServerIp;
+
+  @NonNull
   public final TextView tvSubjectLabel;
 
   @NonNull
@@ -63,7 +66,7 @@ public final class ActivityRegisterBinding implements ViewBinding {
       @NonNull AppCompatButton btnRegister, @NonNull EditText etName, @NonNull EditText etPassword,
       @NonNull LinearLayout llSubject, @NonNull TextView registerTitle, @NonNull Spinner spBranch,
       @NonNull Spinner spCourse, @NonNull Spinner spSection, @NonNull Spinner spSubject,
-      @NonNull Spinner spYear, @NonNull TextView tvSubjectLabel,
+      @NonNull Spinner spYear, @NonNull TextView tvRegServerIp, @NonNull TextView tvSubjectLabel,
       @NonNull TextView tvSwitchToLogin) {
     this.rootView = rootView;
     this.btnRegister = btnRegister;
@@ -76,6 +79,7 @@ public final class ActivityRegisterBinding implements ViewBinding {
     this.spSection = spSection;
     this.spSubject = spSubject;
     this.spYear = spYear;
+    this.tvRegServerIp = tvRegServerIp;
     this.tvSubjectLabel = tvSubjectLabel;
     this.tvSwitchToLogin = tvSwitchToLogin;
   }
@@ -167,6 +171,12 @@ public final class ActivityRegisterBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.tvRegServerIp;
+      TextView tvRegServerIp = ViewBindings.findChildViewById(rootView, id);
+      if (tvRegServerIp == null) {
+        break missingId;
+      }
+
       id = R.id.tvSubjectLabel;
       TextView tvSubjectLabel = ViewBindings.findChildViewById(rootView, id);
       if (tvSubjectLabel == null) {
@@ -180,7 +190,7 @@ public final class ActivityRegisterBinding implements ViewBinding {
       }
 
       return new ActivityRegisterBinding((FrameLayout) rootView, btnRegister, etName, etPassword,
-          llSubject, registerTitle, spBranch, spCourse, spSection, spSubject, spYear,
+          llSubject, registerTitle, spBranch, spCourse, spSection, spSubject, spYear, tvRegServerIp,
           tvSubjectLabel, tvSwitchToLogin);
     }
     String missingId = rootView.getResources().getResourceName(id);

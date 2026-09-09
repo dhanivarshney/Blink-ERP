@@ -1,5 +1,5 @@
-/* ═══════════════════════════════════════════════════════════════
-   SmartRoll — Professional Dashboard JS
+﻿/* ═══════════════════════════════════════════════════════════════
+   BlinkERP — Professional Dashboard JS
    Live BLE Session • Real-time Polling • Radar Animation
    ═══════════════════════════════════════════════════════════════ */
 
@@ -397,6 +397,32 @@ async function loadDashboard() {
       <div class="stat-box" style="animation-delay:0.2s"><div class="stat-icon">✅</div><div class="stat-val">${avgAtt}%</div><div class="stat-lbl">Avg Attendance</div></div>
     `;
 
+    // Student 75% Bunk Hero on Dashboard
+    const studentHero = document.getElementById('dashStudentBunkHero');
+    if (studentHero && currentUser?.role === 'student') {
+      try {
+        const studentName = currentUser.name;
+        const branch = currentUser.branch || '';
+        const section = currentUser.section || '';
+        const ana = await api('GET', `/api/student/analytics?name=${encodeURIComponent(studentName)}&branch=${encodeURIComponent(branch)}&section=${encodeURIComponent(section)}`);
+        studentHero.style.display = 'block';
+        const isSafe = ana.eligibility_status === 'Safe';
+        document.getElementById('dashBunkIcon').textContent = isSafe ? '🎉' : '⚠️';
+        document.getElementById('dashBunkTitle').textContent = `Overall Attendance: ${ana.attendance_pct}% (${ana.present_count}/${ana.total_sessions} Classes)`;
+        const pill = document.getElementById('dashBunkPill');
+        pill.textContent = isSafe ? 'SAFE' : 'SHORTAGE';
+        pill.style.background = isSafe ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
+        pill.style.color = isSafe ? '#10b981' : '#ef4444';
+        studentHero.style.borderLeftColor = isSafe ? '#10b981' : '#ef4444';
+        document.getElementById('dashBunkText').textContent = ana.bunk_message;
+      } catch (err) {
+        studentHero.style.display = 'none';
+      }
+    } else if (studentHero) {
+      studentHero.style.display = 'none';
+    }
+
+
     // Pie chart
     destroyChart('dashPie');
     const pieCtx = document.getElementById('dashPieChart');
@@ -484,57 +510,108 @@ async function loadMyAttendance() {
     const branch = currentUser.branch || '';
     const section = currentUser.section || '';
 
-    // Get all sessions for this student's branch/section
-    const sessions = await api('GET', '/api/sessions');
-    const mySessions = sessions.filter(s =>
-      (s.branch === branch && s.section === section) || s.status === 'active'
-    );
-
-    // Get attendance records for each session
-    myAttData = [];
-    for (const sess of mySessions) {
-      try {
-        const detail = await api('GET', `/api/sessions/${sess.id}`);
-        const students = detail.students || [];
-        const me = students.find(s => s.name === studentName);
-        myAttData.push({
-          session_id: sess.id,
-          subject: sess.subject || '',
-          date: sess.date || '',
-          start_time: sess.start_time || '',
-          branch: sess.branch || '',
-          section: sess.section || '',
-          status: me ? me.status : 'Absent',
-          method: me ? me.method : null,
-          marked_at: me ? me.marked_at : null,
-        });
-      } catch (e) { /* skip failed session */ }
-    }
-
-    // Sort by date desc
-    myAttData.sort((a, b) => (b.date + b.start_time).localeCompare(a.date + a.start_time));
-
-    // Stats
-    const total = myAttData.length;
-    const present = myAttData.filter(r => r.status === 'Present').length;
-    const auto = myAttData.filter(r => r.method === 'Auto').length;
-    const manual = myAttData.filter(r => r.method === 'Manual').length;
-    const pct = total > 0 ? Math.round(present / total * 100) : 0;
-
     document.getElementById('myAttSubtitle').textContent =
-      `${branch}-${section} • ${studentName}`;
+      `${branch ? branch + '-' + section + ' • ' : ''}${studentName}`;
 
+    // Fast unified call to student analytics endpoint
+    const data = await api('GET', `/api/student/analytics?name=${encodeURIComponent(studentName)}&branch=${encodeURIComponent(branch)}&section=${encodeURIComponent(section)}`);
+
+    const total = data.total_sessions || 0;
+    const present = data.present_count || 0;
+    const absent = data.absent_count || 0;
+    const pct = data.attendance_pct || 0;
+    const isSafe = data.eligibility_status === 'Safe';
+
+    // Store for CSV export
+    myAttData = (data.history || []).map(h => ({
+      subject: h.subject || '',
+      date: h.date || '',
+      start_time: h.start_time || '',
+      branch: h.branch || branch,
+      section: h.section || section,
+      status: h.status || 'Absent',
+      method: h.mode || null,
+      marked_at: h.marked_at || null
+    }));
+
+    // Stats Row
     document.getElementById('myAttStats').innerHTML = `
       <div class="stat-box"><div class="stat-icon">📋</div><div class="stat-val">${total}</div><div class="stat-lbl">Total Sessions</div></div>
-      <div class="stat-box"><div class="stat-icon">✅</div><div class="stat-val">${present}</div><div class="stat-lbl">Present</div></div>
-      <div class="stat-box"><div class="stat-icon">❌</div><div class="stat-val">${total - present}</div><div class="stat-lbl">Absent</div></div>
-      <div class="stat-box"><div class="stat-icon">📊</div><div class="stat-val">${pct}%</div><div class="stat-lbl">Attendance</div></div>
+      <div class="stat-box"><div class="stat-icon">✅</div><div class="stat-val" style="color:var(--green);">${present}</div><div class="stat-lbl">Present</div></div>
+      <div class="stat-box"><div class="stat-icon">❌</div><div class="stat-val" style="color:var(--red);">${absent}</div><div class="stat-lbl">Absent</div></div>
+      <div class="stat-box"><div class="stat-icon">📊</div><div class="stat-val" style="color:${isSafe ? 'var(--green)' : 'var(--red)'};">${pct}%</div><div class="stat-lbl">Overall Attendance</div></div>
     `;
 
-    // Attendance list
+    // ─── 75% Bunk & Eligibility Card ───
+    const bunkCard = document.getElementById('bunkCalculatorCard');
+    if (bunkCard) {
+      bunkCard.style.display = 'block';
+      const badge = document.getElementById('bunkStatusBadge');
+      const badgeText = document.getElementById('bunkStatusText');
+      const metricVal = document.getElementById('bunkMetricVal');
+      const metricLbl = document.getElementById('bunkMetricLbl');
+      const msgIcon = document.getElementById('bunkMsgIcon');
+      const msg = document.getElementById('bunkMessage');
+      const currPct = document.getElementById('bunkCurrentPct');
+      const barFill = document.getElementById('bunkBarFill');
+
+      if (isSafe) {
+        badge.className = 'bunk-status-badge safe';
+        badgeText.textContent = 'ELIGIBLE / SAFE';
+        metricVal.textContent = data.bunkable_classes || 0;
+        metricVal.style.color = '#10b981';
+        metricLbl.textContent = 'Upcoming classes you can bunk';
+        msgIcon.textContent = '🎉';
+        barFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+      } else {
+        badge.className = 'bunk-status-badge warning';
+        badgeText.textContent = 'ATTENDANCE SHORTAGE';
+        metricVal.textContent = data.needed_classes || 1;
+        metricVal.style.color = '#ef4444';
+        metricLbl.textContent = 'Classes you must attend consecutively';
+        msgIcon.textContent = '⚠️';
+        barFill.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+      }
+
+      msg.textContent = data.bunk_message || '';
+      currPct.textContent = `${pct}%`;
+      barFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+    }
+
+    // ─── Subject-wise Breakdown Grid ───
+    const subjects = data.subjects || [];
+    const subBadge = document.getElementById('myAttSubCountBadge');
+    if (subBadge) subBadge.textContent = `${subjects.length} Subjects`;
+
+    const subGrid = document.getElementById('myAttSubjectGrid');
+    if (subGrid) {
+      if (!subjects.length) {
+        subGrid.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><strong>No subject records yet</strong></div>';
+      } else {
+        subGrid.innerHTML = `<div class="sub-breakdown-grid">` + subjects.map(s => {
+          const sSafe = s.percentage >= 75.0;
+          return `
+            <div class="sub-card ${sSafe ? 'safe' : 'risk'}">
+              <div class="sub-card-top">
+                <strong>${s.subject}</strong>
+                <span class="status-pill ${sSafe ? 'present' : 'absent'}">${sSafe ? 'Safe' : 'At Risk'}</span>
+              </div>
+              <div class="sub-card-metrics">
+                <div class="sub-pct" style="color:${sSafe ? 'var(--green)' : 'var(--red)'};">${s.percentage}%</div>
+                <div class="sub-fraction">${s.present} / ${s.total} attended</div>
+              </div>
+              <div class="sub-track">
+                <div class="sub-bar" style="width:${Math.min(100, s.percentage)}%; background:${sSafe ? 'var(--green)' : 'var(--red)'};"></div>
+              </div>
+            </div>`;
+        }).join('') + `</div>`;
+      }
+    }
+
+    // ─── History List ───
     const listEl = document.getElementById('myAttList');
     if (!myAttData.length) {
-      listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><strong>No sessions yet for your class</strong></div>';
+      listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><strong>No class sessions recorded yet</strong></div>';
     } else {
       listEl.innerHTML = myAttData.map((r, i) => {
         const isPresent = r.status === 'Present';
@@ -552,8 +629,7 @@ async function loadMyAttendance() {
       }).join('');
     }
 
-    // Charts
-    // Pie chart: Present vs Absent
+    // ─── Charts ───
     destroyChart('myAttPie');
     const pieCtx = document.getElementById('myAttChart');
     if (pieCtx) {
@@ -561,39 +637,32 @@ async function loadMyAttendance() {
         type: 'doughnut',
         data: {
           labels: ['Present', 'Absent'],
-          datasets: [{ data: [present, total - present], backgroundColor: [COLORS.green, COLORS.red], borderWidth: 0 }]
+          datasets: [{ data: [present, absent], backgroundColor: [COLORS.green, COLORS.red], borderWidth: 0 }]
         },
         options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.4, cutout: '68%', plugins: { legend: { position: 'bottom' } } }
       });
     }
 
-    // Subject-wise bar chart
     destroyChart('myAttSub');
     const subCtx = document.getElementById('myAttSubChart');
-    if (subCtx) {
-      const subjectMap = {};
-      myAttData.forEach(r => {
-        if (!subjectMap[r.subject]) subjectMap[r.subject] = { present: 0, absent: 0 };
-        if (r.status === 'Present') subjectMap[r.subject].present++;
-        else subjectMap[r.subject].absent++;
+    if (subCtx && subjects.length) {
+      chartInstances['myAttSub'] = new Chart(subCtx, {
+        type: 'bar',
+        data: {
+          labels: subjects.map(s => s.subject),
+          datasets: [
+            { label: 'Present', data: subjects.map(s => s.present), backgroundColor: COLORS.green, borderRadius: 6 },
+            { label: 'Absent', data: subjects.map(s => s.absent), backgroundColor: COLORS.redA, borderRadius: 6 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.6, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' } }, x: { grid: { display: false } } } }
       });
-      const subLabels = Object.keys(subjectMap);
-      if (subLabels.length) {
-        chartInstances['myAttSub'] = new Chart(subCtx, {
-          type: 'bar',
-          data: {
-            labels: subLabels,
-            datasets: [
-              { label: 'Present', data: subLabels.map(s => subjectMap[s].present), backgroundColor: COLORS.green, borderRadius: 6 },
-              { label: 'Absent', data: subLabels.map(s => subjectMap[s].absent), backgroundColor: COLORS.redA, borderRadius: 6 }
-            ]
-          },
-          options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.6, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' } }, x: { grid: { display: false } } } }
-        });
-      }
     }
-  } catch (e) { console.error('My Attendance error:', e); }
+  } catch (e) {
+    console.error('My Attendance error:', e);
+  }
 }
+
 
 function exportMyAttendanceCSV() {
   if (!myAttData.length) { alert('No data to export'); return; }
@@ -1450,20 +1519,99 @@ async function delStudent(id) { if (!confirm('Delete?')) return; await api('DELE
 async function loadUserTable() {
   try {
     const users = await api('GET', '/api/admin/users');
+    const badge = document.getElementById('adminUserCountBadge');
+    if (badge) badge.textContent = `${users.length} Users`;
     const el = document.getElementById('userList');
     if (!users.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><strong>No users</strong></div>'; return; }
     el.innerHTML = users.map(u => {
       const isT = u.role === 'teacher';
+      const safeName = (u.name || '').replace(/'/g, "\\'");
       return `<div class="list-item">
         <div class="item-icon ${isT ? 'purple' : 'green'}">${isT ? '👨‍🏫' : '🎓'}</div>
-        <div class="item-info"><strong>${u.name}</strong><small>${u.role} • ${u.course || '—'} • ${u.branch || '—'}-${u.section || '—'}</small></div>
-        <button class="btn-x" onclick="delUser(${u.id})">✕</button>
+        <div class="item-info">
+          <strong>${u.name}</strong>
+          <small>${(u.role || '').toUpperCase()} • ${u.branch || '—'} ${u.section ? '('+u.section+')' : ''} ${u.subject ? '• ' + u.subject : ''}</small>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn-outline sm" onclick="openResetPasswordModal(${u.id}, '${safeName}')">🔑 Reset Pass</button>
+          <button class="btn-x" onclick="delUser(${u.id})" title="Delete user">✕</button>
+        </div>
       </div>`;
     }).join('');
-  } catch (e) {}
+  } catch (e) {
+    console.error('Failed to load user table:', e);
+  }
 }
 
-async function delUser(id) { if (!confirm('Delete user?')) return; await api('DELETE', `/api/admin/users/${id}`); loadUserTable(); }
+async function delUser(id) {
+  if (!confirm('Delete this user account permanently?')) return;
+  await api('DELETE', `/api/admin/users/${id}`);
+  loadUserTable();
+}
+
+async function adminCreateUser() {
+  const name = document.getElementById('adminNewName').value.trim();
+  const password = document.getElementById('adminNewPass').value.trim();
+  const role = document.getElementById('adminNewRole').value;
+  const branch = document.getElementById('adminNewBranch').value.trim();
+  const section = document.getElementById('adminNewSection').value.trim();
+  const subject = document.getElementById('adminNewSubject').value.trim();
+
+  if (!name || !password || !role) {
+    alert('Name, password, and role are required!');
+    return;
+  }
+  try {
+    await api('POST', '/api/admin/users', { name, password, role, branch, section, subject });
+    alert(`User ${name} created successfully!`);
+    document.getElementById('adminNewName').value = '';
+    document.getElementById('adminNewPass').value = '';
+    document.getElementById('adminNewBranch').value = '';
+    document.getElementById('adminNewSection').value = '';
+    document.getElementById('adminNewSubject').value = '';
+    loadUserTable();
+  } catch (e) {
+    alert(e.message || 'Failed to create user');
+  }
+}
+
+function openResetPasswordModal(userId, userName) {
+  const modal = document.getElementById('resetPasswordModal');
+  if (!modal) return;
+  document.getElementById('resetPasswordUserId').value = userId;
+  document.getElementById('resetPasswordTargetUser').textContent = `Set a new password for: ${userName}`;
+  document.getElementById('newAdminPasswordInput').value = '';
+  document.getElementById('resetPasswordError').classList.add('hidden');
+  modal.classList.remove('hidden');
+}
+
+function closeResetPasswordModal() {
+  const modal = document.getElementById('resetPasswordModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function submitResetPassword() {
+  const userId = document.getElementById('resetPasswordUserId').value;
+  const newPassword = document.getElementById('newAdminPasswordInput').value.trim();
+  const errEl = document.getElementById('resetPasswordError');
+  errEl.classList.add('hidden');
+
+  if (!newPassword || newPassword.length < 4) {
+    errEl.textContent = 'Password must be at least 4 characters';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await api('POST', `/api/admin/users/${userId}/password`, { new_password: newPassword });
+    alert('Password updated successfully!');
+    closeResetPasswordModal();
+  } catch (e) {
+    errEl.textContent = e.message || 'Failed to update password';
+    errEl.classList.remove('hidden');
+  }
+}
+
 
 // ─── SESSIONS ──────────────────────────────────────────────────
 async function startNewSession() {

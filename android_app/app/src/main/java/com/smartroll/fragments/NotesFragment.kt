@@ -61,6 +61,13 @@ class NotesFragment : Fragment() {
 
         lifecycleScope.launch {
             currentUser = repository.getCurrentUser()
+            val isStudent = currentUser?.role == "student"
+            view.findViewById<View>(R.id.btnAddNote).visibility = if (isStudent) View.GONE else View.VISIBLE
+            loadNotes()
+        }
+
+        view.findViewById<View>(R.id.btnRefreshNotes).setOnClickListener {
+            Toast.makeText(context, "Syncing notes...", Toast.LENGTH_SHORT).show()
             loadNotes()
         }
 
@@ -80,6 +87,11 @@ class NotesFragment : Fragment() {
         view.findViewById<Button>(R.id.btnSaveNote).setOnClickListener {
             saveNote(view)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadNotes()
     }
 
     private fun saveNote(view: View) {
@@ -152,7 +164,8 @@ class NotesFragment : Fragment() {
                     if (user?.role == "teacher") {
                         repository.getNotes(teacherName = user.name)
                     } else {
-                        repository.getNotes(branch = user?.branch, section = user?.section)
+                        val filtered = repository.getNotes(branch = user?.branch, section = user?.section)
+                        if (filtered.isNotEmpty()) filtered else repository.getNotes(branch = user?.branch)
                     }
                 } catch (e: Exception) {
                     emptyList()

@@ -22,6 +22,12 @@ public final class ActivityMainBinding implements ViewBinding {
   private final FrameLayout rootView;
 
   @NonNull
+  public final LinearLayout adminCard;
+
+  @NonNull
+  public final Button btnAdmin;
+
+  @NonNull
   public final Button btnStudent;
 
   @NonNull
@@ -39,11 +45,13 @@ public final class ActivityMainBinding implements ViewBinding {
   @NonNull
   public final TextView tvServerIp;
 
-  private ActivityMainBinding(@NonNull FrameLayout rootView, @NonNull Button btnStudent,
-      @NonNull Button btnTeacher, @NonNull LinearLayout logoContainer,
-      @NonNull LinearLayout studentCard, @NonNull LinearLayout teacherCard,
-      @NonNull TextView tvServerIp) {
+  private ActivityMainBinding(@NonNull FrameLayout rootView, @NonNull LinearLayout adminCard,
+      @NonNull Button btnAdmin, @NonNull Button btnStudent, @NonNull Button btnTeacher,
+      @NonNull LinearLayout logoContainer, @NonNull LinearLayout studentCard,
+      @NonNull LinearLayout teacherCard, @NonNull TextView tvServerIp) {
     this.rootView = rootView;
+    this.adminCard = adminCard;
+    this.btnAdmin = btnAdmin;
     this.btnStudent = btnStudent;
     this.btnTeacher = btnTeacher;
     this.logoContainer = logoContainer;
@@ -79,6 +87,18 @@ public final class ActivityMainBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.adminCard;
+      LinearLayout adminCard = ViewBindings.findChildViewById(rootView, id);
+      if (adminCard == null) {
+        break missingId;
+      }
+
+      id = R.id.btnAdmin;
+      Button btnAdmin = ViewBindings.findChildViewById(rootView, id);
+      if (btnAdmin == null) {
+        break missingId;
+      }
+
       id = R.id.btnStudent;
       Button btnStudent = ViewBindings.findChildViewById(rootView, id);
       if (btnStudent == null) {
@@ -115,8 +135,8 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMainBinding((FrameLayout) rootView, btnStudent, btnTeacher, logoContainer,
-          studentCard, teacherCard, tvServerIp);
+      return new ActivityMainBinding((FrameLayout) rootView, adminCard, btnAdmin, btnStudent,
+          btnTeacher, logoContainer, studentCard, teacherCard, tvServerIp);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

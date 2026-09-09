@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * SmartRoll — PYQ (Previous Year Questions) Entity
+ * BlinkERP — PYQ (Previous Year Questions) Entity
  */
 @Entity(tableName = "pyqs")
 data class PyqEntity(

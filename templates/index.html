@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#070b13" />
-  <title>SmartRoll — BLE Attendance Platform</title>
+  <meta name="theme-color" content="#0D1A3A" />
+  <title>BlinkERP — Enterprise ERP Platform</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234f46e5'/%3E%3Cstop offset='1' stop-color='%239333ea'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='32' r='13' fill='none' stroke='white' stroke-width='4'/%3E%3Cpath d='M32 12v9M32 43v9M12 32h9M43 32h9' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,6 +47,27 @@
     </div>
   </div>
 
+  <!-- ═══════ RESET PASSWORD MODAL ═══════ -->
+  <div id="resetPasswordModal" class="modal-overlay hidden" onclick="if(event.target===this)closeResetPasswordModal()">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>🔑 Reset User Password</h2>
+        <button class="btn-x" onclick="closeResetPasswordModal()" style="font-size:18px;">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint" id="resetPasswordTargetUser">Set a new password for this user.</p>
+        <input type="hidden" id="resetPasswordUserId" />
+        <div class="form-group">
+          <label for="newAdminPasswordInput">New Password</label>
+          <input type="password" id="newAdminPasswordInput" placeholder="Enter new password (min 4 chars)" />
+        </div>
+        <button class="btn-glow" onclick="submitResetPassword()" style="width:100%;margin-top:8px;">Save Password</button>
+        <p class="modal-error hidden" id="resetPasswordError"></p>
+      </div>
+    </div>
+  </div>
+
+
   <!-- ═══════ LANDING ═══════ -->
   <div id="page-landing" class="page active">
     <div class="landing-bg">
@@ -55,7 +76,7 @@
       <div class="orb orb-3"></div>
     </div>
     <div class="landing-content">
-      <div class="landing-badge">🎓 Hackathon Project — BLE Attendance</div>
+      <div class="landing-badge">🎓 Production ERP — BLE Powered</div>
       <div class="landing-logo">
         <div class="logo-pulse"></div>
         <div class="logo-pulse delay"></div>
@@ -64,20 +85,24 @@
         </div>
       </div>
       <h1 class="landing-title">
-        <span class="title-line" style="--d:0">Smart</span>
-        <span class="title-line accent" style="--d:1">Roll</span>
+        <span class="title-line" style="--d:0">Blink</span>
+        <span class="title-line accent" style="--d:1">ERP</span>
       </h1>
-      <p class="landing-sub">Bluetooth Low Energy Attendance System</p>
+      <p class="landing-sub">Enterprise Resource Planning · BLE Attendance · Analytics</p>
       <div class="landing-features">
         <div class="feature-pill"><span>📡</span> Real BLE Detection</div>
         <div class="feature-pill"><span>⚡</span> Auto Marking</div>
-        <div class="feature-pill"><span>📊</span> Live Dashboard</div>
+        <div class="feature-pill"><span>📊</span> Live Analytics</div>
         <div class="feature-pill"><span>🔒</span> Anti-Spoofing</div>
+        <div class="feature-pill"><span>📚</span> PYQ Bank</div>
+        <div class="feature-pill"><span>📝</span> Class Notes</div>
+        <div class="feature-pill"><span>⚙️</span> Admin ERP Panel</div>
+        <div class="feature-pill"><span>🎯</span> 75% Bunk Calc</div>
       </div>
       <button class="landing-cta" onclick="showPage('auth')">
-        Enter Dashboard <span>→</span>
+        Enter BlinkERP Dashboard <span>→</span>
       </button>
-      <p class="landing-footer-text">No fake simulation &nbsp;•&nbsp; Real devices only &nbsp;•&nbsp; Hackathon Demo</p>
+      <p class="landing-footer-text">Real BLE Detection &nbsp;•&nbsp; Production Ready &nbsp;•&nbsp; Enterprise Grade ERP</p>
     </div>
   </div>
 
@@ -90,14 +115,16 @@
             <div class="logo-icon small">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/></svg>
             </div>
-            <span>Smart <b>Roll</b></span>
+            <span>Blink <b>ERP</b></span>
           </div>
-          <h2>Welcome<br />Back 👋</h2>
-          <p>Sign in to manage attendance, watch BLE signals live, and explore analytics — all in one dashboard.</p>
+          <h2>Welcome to<br />BlinkERP 👋</h2>
+          <p>Sign in to manage attendance, watch BLE signals live, explore analytics, access PYQ papers &amp; class notes — all in one enterprise dashboard.</p>
           <div class="auth-illustration">
             <div class="illust-card"><div class="illust-icon">📡</div><span class="illust-text">BLE Scan &amp; detect students</span></div>
             <div class="illust-card"><div class="illust-icon">✅</div><span class="illust-text">One-tap auto attendance</span></div>
             <div class="illust-card"><div class="illust-icon">📊</div><span class="illust-text">Live analytics &amp; reports</span></div>
+            <div class="illust-card"><div class="illust-icon">📚</div><span class="illust-text">PYQ Bank &amp; Class Notes</span></div>
+            <div class="illust-card"><div class="illust-icon">⚙️</div><span class="illust-text">Admin ERP control panel</span></div>
           </div>
         </div>
         <div class="auth-right">
@@ -199,7 +226,7 @@
           <div class="logo-icon tiny">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/></svg>
           </div>
-          <span class="brand-text">Smart <b>Roll</b></span>
+          <span class="brand-text">Blink<b>ERP</b></span>
           <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
         </div>
 
@@ -282,6 +309,81 @@
 
           <div class="stats-row" id="dashStats"></div>
 
+          <!-- ─── STUDENT 75% BUNK HERO (appears if student) ─── -->
+          <div id="dashStudentBunkHero" class="card" style="display:none; margin-bottom:20px; border-left:4px solid #10b981;">
+            <div class="card-body" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+              <div style="display:flex; align-items:center; gap:16px;">
+                <div style="font-size:36px;" id="dashBunkIcon">🎯</div>
+                <div>
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <strong id="dashBunkTitle" style="font-size:17px; color:var(--text);">Attendance Eligibility</strong>
+                    <span id="dashBunkPill" class="badge" style="background:rgba(16,185,129,0.2); color:#10b981;">Safe</span>
+                  </div>
+                  <p id="dashBunkText" style="color:var(--muted); font-size:13px; margin:4px 0 0;">Calculating eligibility...</p>
+                </div>
+              </div>
+              <button class="btn-glow sm" onclick="switchView('my-attendance')">Full Attendance Analysis →</button>
+            </div>
+          </div>
+
+          <!-- ─── ERP MODULE LAUNCHPAD (Premium Edition) ─── -->
+          <div class="erp-launchpad">
+            <div class="launch-tile cyan premium-glow" onclick="switchView('live')">
+              <div class="launch-icon">📡</div>
+              <div class="launch-info">
+                <h4>Live BLE Radar</h4>
+                <p>Real-time Bluetooth Low Energy beacon detection &amp; auto marking</p>
+              </div>
+              <span class="launch-arrow">→</span>
+            </div>
+
+            <div class="launch-tile green premium-glow" onclick="switchView(currentUser?.role === 'student' ? 'my-attendance' : 'analytics')">
+              <div class="launch-icon">📊</div>
+              <div class="launch-info">
+                <h4>75% Bunk &amp; Eligibility</h4>
+                <p>AI calculated exam eligibility, safe bunks &amp; attendance percentage</p>
+              </div>
+              <span class="launch-arrow">→</span>
+            </div>
+
+            <div class="launch-tile indigo premium-glow" onclick="switchView('notes')">
+              <div class="launch-icon">📝</div>
+              <div class="launch-info">
+                <h4>Class Notes &amp; PDFs</h4>
+                <p>Subject study materials, lecture summaries &amp; downloadable files</p>
+              </div>
+              <span class="launch-arrow">→</span>
+            </div>
+
+            <div class="launch-tile amber premium-glow" onclick="switchView('pyq')">
+              <div class="launch-icon">📚</div>
+              <div class="launch-info">
+                <h4>PYQ Paper Bank</h4>
+                <p>1st to 8th Semester previous year exam question papers repository</p>
+              </div>
+              <span class="launch-arrow">→</span>
+            </div>
+
+            <div class="launch-tile purple premium-glow" onclick="switchView('students')">
+              <div class="launch-icon">👥</div>
+              <div class="launch-info">
+                <h4>Student Directory</h4>
+                <p>All registered students across departments, sections &amp; roll numbers</p>
+              </div>
+              <span class="launch-arrow">→</span>
+            </div>
+
+            <div class="launch-tile pink premium-glow" onclick="switchView(currentUser?.role === 'admin' ? 'admin' : 'sessions')">
+              <div class="launch-icon">⚙️</div>
+              <div class="launch-info">
+                <h4>ERP Control &amp; Admin</h4>
+                <p>Department setup, user password reset &amp; class session management</p>
+              </div>
+              <span class="launch-arrow">→</span>
+            </div>
+          </div>
+
+
           <div class="live-banner" id="liveBanner" style="display:none;">
             <div class="live-banner-pulse"></div>
             <div class="live-banner-content">
@@ -353,6 +455,51 @@
             </div>
           </div>
           <div class="stats-row" id="myAttStats"></div>
+
+          <!-- ── 75% Bunk & Exam Eligibility Calculator Card ── -->
+          <div class="bunk-card" id="bunkCalculatorCard" style="display:none; margin-bottom:20px;">
+            <div class="bunk-card-body">
+              <div class="bunk-header">
+                <div class="bunk-status-badge" id="bunkStatusBadge">
+                  <span class="bunk-status-dot"></span>
+                  <span id="bunkStatusText">Safe</span>
+                </div>
+                <div class="bunk-goal">Goal: 75% Minimum Exam Eligibility</div>
+              </div>
+              <div class="bunk-hero">
+                <div class="bunk-metric">
+                  <div class="bunk-val" id="bunkMetricVal">0</div>
+                  <div class="bunk-lbl" id="bunkMetricLbl">Classes you can bunk</div>
+                </div>
+                <div class="bunk-divider"></div>
+                <div class="bunk-message-box">
+                  <div class="bunk-msg-icon" id="bunkMsgIcon">🎯</div>
+                  <div class="bunk-msg" id="bunkMessage">Calculating attendance status...</div>
+                </div>
+              </div>
+              <div class="bunk-bar-wrap">
+                <div class="bunk-bar-labels">
+                  <span>Current: <strong id="bunkCurrentPct">0%</strong></span>
+                  <span class="target-marker">75% Safe Line</span>
+                  <span>Target: <strong>100%</strong></span>
+                </div>
+                <div class="bunk-bar-track">
+                  <div class="bunk-bar-fill" id="bunkBarFill" style="width: 0%;"></div>
+                  <div class="bunk-bar-target-line" style="left: 75%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Subject Breakdown Card ── -->
+          <div class="card" id="myAttSubjectBreakdownCard" style="margin-bottom:18px;">
+            <div class="card-head">
+              <h3>Subject-wise Breakdown &amp; Status</h3>
+              <span class="badge" id="myAttSubCountBadge">0 Subjects</span>
+            </div>
+            <div class="card-body" id="myAttSubjectGrid"></div>
+          </div>
+
           <div class="card" style="margin-bottom:18px;">
             <div class="card-head">
               <h3>Attendance History</h3>
@@ -360,6 +507,7 @@
             </div>
             <div class="card-body" id="myAttList"></div>
           </div>
+
           <div class="grid-2">
             <div class="card">
               <div class="card-head"><h3>Attendance Trend</h3></div>
@@ -649,8 +797,32 @@
           </div>
 
           <div id="adminUsers" class="admin-panel hidden">
-            <div class="card"><div class="card-body" id="userList"></div></div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-head"><h3>➕ Add New User (Teacher / Student)</h3></div>
+              <div class="card-body">
+                <div class="form-grid-3">
+                  <input id="adminNewName" placeholder="Full Name (e.g. Rahul Sharma)" />
+                  <input id="adminNewPass" type="password" placeholder="Password (min 4 chars)" />
+                  <select id="adminNewRole">
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                  </select>
+                  <input id="adminNewBranch" placeholder="Branch (e.g. CSE)" />
+                  <input id="adminNewSection" placeholder="Section (e.g. A)" />
+                  <input id="adminNewSubject" placeholder="Subject (for Teacher)" />
+                </div>
+                <button class="btn-glow" onclick="adminCreateUser()" style="margin-top:14px;">Create User Account</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <h3>Registered System Users</h3>
+                <span class="badge" id="adminUserCountBadge">0 Users</span>
+              </div>
+              <div class="card-body" id="userList"></div>
+            </div>
           </div>
+
         </div>
 
       </main>

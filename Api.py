@@ -1,5 +1,5 @@
-"""
-SmartRoll — API Server (Flask)
+﻿"""
+BlinkERP — API Server (Flask)
 ==========================================================
 Bridges Android app + Web frontend <-> shared SQLite database.
 
@@ -561,11 +561,43 @@ def admin_list_users():
     users = db.get_all_users(role, course, year, branch, section)
     return jsonify(users)
 
+@app.route("/api/admin/users", methods=["POST"])
+def admin_create_user():
+    data = request.get_json(force=True) if request.is_json else {}
+    name = data.get("name", "").strip()
+    password = data.get("password", "").strip()
+    role = data.get("role", "").strip()
+    if not name or not password or not role:
+        return jsonify({"error": "Name, password, and role are required"}), 400
+    course = data.get("course", "").strip() or None
+    year = data.get("year", "").strip() or None
+    branch = data.get("branch", "").strip() or None
+    section = data.get("section", "").strip() or None
+    subject = data.get("subject", "").strip() or None
+    user = db.register_user(name, password, role, course, year, branch, section, subject)
+    if user is None:
+        return jsonify({"error": "User already exists"}), 409
+    return jsonify({"status": "created", "user": user})
+
+
+@app.route("/api/admin/users/<int:user_id>/password", methods=["POST"])
+def admin_update_user_password(user_id):
+    data = request.get_json(force=True) if request.is_json else {}
+    new_password = (data.get("new_password") or data.get("password", "")).strip()
+    if not new_password:
+        return jsonify({"error": "New password is required"}), 400
+    success = db.update_user_password(user_id, new_password)
+    if not success:
+        return jsonify({"error": "Failed to update password"}), 500
+    return jsonify({"status": "updated", "message": "Password updated successfully"})
+
+
 @app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
 def admin_delete_user(user_id):
     with db.get_conn() as conn:
         conn.execute("DELETE FROM users WHERE id=?", (user_id,))
     return jsonify({"status": "deleted"})
+
 
 
 # ================================================================
@@ -662,7 +694,31 @@ def analytics_monthly():
 
 
 # ================================================================
+# STUDENT PERSONAL ANALYTICS & BUNK CALCULATOR
+# ================================================================
+
+@app.route("/api/student/analytics", methods=["GET", "POST"])
+def student_personal_analytics():
+    if request.method == "POST":
+        data = request.get_json(force=True) if request.is_json else {}
+        name = data.get("name") or data.get("student_name", "")
+        branch = data.get("branch")
+        section = data.get("section")
+    else:
+        name = request.args.get("name") or request.args.get("student_name", "")
+        branch = request.args.get("branch")
+        section = request.args.get("section")
+
+    if not name:
+        return jsonify({"error": "student name is required"}), 400
+
+    analytics = db.get_student_full_analytics(name, branch, section)
+    return jsonify(analytics)
+
+
+# ================================================================
 # Run
+
 # ================================================================
 
 # ══════════════════════════════════════════════════════════════

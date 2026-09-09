@@ -1,7 +1,7 @@
 package com.smartroll;
 
 /**
- * SmartRoll — Registration Screen
+ * BlinkERP — Registration Screen
  * Teacher: name, password, course, branch, section, subject
  * Student: name, password, course, branch, section
  */

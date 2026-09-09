@@ -11,8 +11,9 @@ import java.util.concurrent.TimeUnit
 object ApiService {
 
     private var _serverUrl: String? = null
+    const val DEFAULT_IP = "192.168.194.186"
     val serverUrl: String
-        get() = _serverUrl ?: "http://10.0.2.2:5000"
+        get() = _serverUrl ?: "http://$DEFAULT_IP:5000"
 
     fun updateUrl(context: Context, newIp: String) {
         // Robust cleanup: strip "http://"/"https://", strip any trailing
@@ -44,8 +45,18 @@ object ApiService {
 
     fun init(context: Context) {
         val savedUrl = context.getSharedPreferences("smartroll_prefs", Context.MODE_PRIVATE)
-            .getString("server_url", "http://10.0.2.2:5000")
-        _serverUrl = savedUrl
+            .getString("server_url", null)
+        
+        // If never set, or still set to emulator loopback 10.0.2.2, override with real laptop IP
+        if (savedUrl == null || savedUrl.contains("10.0.2.2")) {
+            _serverUrl = "http://$DEFAULT_IP:5000"
+            context.getSharedPreferences("smartroll_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .putString("server_url", _serverUrl)
+                .apply()
+        } else {
+            _serverUrl = savedUrl
+        }
     }
 
     private val client = OkHttpClient.Builder()
@@ -168,6 +179,38 @@ object ApiService {
         if (params.isNotEmpty()) path += "?" + params.joinToString("&")
         return getArray(path)
     }
+
+    fun getStudentAnalytics(name: String, branch: String? = null, section: String? = null): JSONObject? {
+        return try {
+            var path = "/api/student/analytics?name=" + java.net.URLEncoder.encode(name, "UTF-8")
+            branch?.let { path += "&branch=" + java.net.URLEncoder.encode(it, "UTF-8") }
+            section?.let { path += "&section=" + java.net.URLEncoder.encode(it, "UTF-8") }
+            get(path)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun updateUserPassword(userId: Int, newPassword: String): JSONObject? {
+        val body = JSONObject().apply {
+            put("new_password", newPassword)
+        }
+        return post("/api/admin/users/$userId/password", body)
+    }
+
+    fun adminCreateUser(name: String, password: String, role: String,
+                        branch: String? = null, section: String? = null, subject: String? = null): JSONObject? {
+        val body = JSONObject().apply {
+            put("name", name)
+            put("password", password)
+            put("role", role)
+            branch?.let { put("branch", it) }
+            section?.let { put("section", it) }
+            subject?.let { put("subject", it) }
+        }
+        return post("/api/admin/users", body)
+    }
+
 
 
     private fun post(path: String, body: JSONObject): JSONObject? {

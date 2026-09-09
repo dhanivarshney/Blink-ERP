@@ -1,6 +1,8 @@
 package com.smartroll
 
 import com.smartroll.utils.PermissionManager
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -16,7 +18,7 @@ import com.smartroll.repository.MainRepository
 import kotlinx.coroutines.launch
 
 /**
- * SmartRoll — Main Dashboard (role-based home)
+ * BlinkERP — Main Dashboard (role-based home)
  *
  * This is the screen the hackathon demo runs on:
  *  - TEACHER: "START CLASS" creates the session on the server FIRST (so the
@@ -55,15 +57,38 @@ class DashboardActivity : AppCompatActivity(), BleManager.DeviceCallback {
     }
 
     private fun checkPermissions() {
-        if (!PermissionManager.hasPermissions(this)) {
-            PermissionManager.requestPermissions(this, 103)
+        val role = currentUser?.role
+        if (!PermissionManager.hasPermissions(this, role)) {
+            PermissionManager.requestPermissions(this, 103, role)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 103) {
+            if (grantResults.any { it != PackageManager.PERMISSION_GRANTED }) {
+                // Check if BLUETOOTH_SCAN failed on Android 12+ (OEM issue on Xiaomi/Vivo/Oppo)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val scanIndex = permissions.indexOf(android.Manifest.permission.BLUETOOTH_SCAN)
+                    if (scanIndex != -1 && grantResults[scanIndex] != PackageManager.PERMISSION_GRANTED) {
+                        PermissionManager.showOemScanPermissionMessage(this)
+                        return
+                    }
+                }
+                Toast.makeText(this, "Bluetooth permissions are required for attendance", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
     fun startBleAction() {
         val user = currentUser ?: return
         if (!bleManager.isBluetoothEnabled()) {
-            Toast.makeText(this, "Bluetooth is OFF", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Bluetooth is OFF. Please turn it on.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // On Android 11 and below, Location Services must be ON for scanning
+        if (user.role != "teacher" && !PermissionManager.checkAndPromptLocation(this)) {
             return
         }
 
@@ -80,8 +105,7 @@ class DashboardActivity : AppCompatActivity(), BleManager.DeviceCallback {
                 return
             }
 
-            // Create the session on the server FIRST so the laptop dashboard
-            // picks it up as LIVE, then broadcast our teacher beacon.
+            // Create the session on the server FIRST so laptop dashboard picks it up LIVE
             lifecycleScope.launch {
                 currentSession = repository.startSession(user.name, branch, section, subject)
                 val synced = currentSession?.remoteId != null
@@ -95,19 +119,16 @@ class DashboardActivity : AppCompatActivity(), BleManager.DeviceCallback {
                 }
             }
 
-            bleManager.startAdvertising(user.id.toString(), {
+            // Teacher only advertises (advertiser side)
+            bleManager.startAdvertising(user.name, {
                 Log.d("Dashboard", "Teacher advertising started")
             }, { err ->
-                Toast.makeText(this, "BLE Error: $err", Toast.LENGTH_SHORT).show()
+                runOnUiThread {
+                    Toast.makeText(this, "BLE Error: $err", Toast.LENGTH_LONG).show()
+                }
             })
-            bleManager.startScan(this)
         } else {
-            // Student: advertise our presence AND scan for the teacher's beacon.
-            bleManager.startAdvertising(user.id.toString(), {
-                Log.d("Dashboard", "Student advertising started")
-            }, { err ->
-                Log.e("Dashboard", "Student advertising error: $err")
-            })
+            // Student only scans (scanner side) — no filter, no advertising
             bleManager.startScan(this)
         }
     }
@@ -127,32 +148,27 @@ class DashboardActivity : AppCompatActivity(), BleManager.DeviceCallback {
         }
     }
 
-    private var lastAttendanceMarkedTime: Long = 0
-
     override fun onDeviceFound(name: String, address: String, rssi: Int, id: String) {
         val user = currentUser ?: return
-        if (user.role == "teacher") {
-            // Check if ID belongs to a student
-            if (id.startsWith("stu_") && address !in MainRepository.detectedDevices) {
-                MainRepository.detectedDevices.add(address)
-            }
-        } else if (user.role == "student") {
-            val now = System.currentTimeMillis()
-            // Check if ID belongs to a teacher
-            if (id.startsWith("tea_") && address !in MainRepository.detectedDevices && (now - lastAttendanceMarkedTime > 5000)) {
-                MainRepository.detectedDevices.add(address)
-                lastAttendanceMarkedTime = now
-                val branch = user.branch ?: return
-                val section = user.section ?: return
-                val studentName = user.name
-                lifecycleScope.launch {
-                    val session = repository.getActiveSession(branch, section)
-                    val sessionId = session?.remoteId?.toString()
-                    val result = repository.markAttendance(studentName, branch, section, "Auto", sessionId)
-                    runOnUiThread {
+        if (user.role == "student" && id == "TEACHER") {
+            // Immediately stop scanning once teacher is found
+            stopBleAction()
+
+            if (address in MainRepository.detectedDevices) return
+            MainRepository.detectedDevices.add(address)
+
+            val branch = user.branch ?: return
+            val section = user.section ?: return
+            val studentName = user.name
+
+            // Call exact endpoint POST /api/mark with student_name, branch, section, mode = "Auto"
+            lifecycleScope.launch {
+                val result = repository.markAttendance(studentName, branch, section, "Auto")
+                runOnUiThread {
+                    if (result.isSuccess) {
                         val record = result.getOrNull()
+                        MainRepository.attendanceStatus.value = "marked"
                         if (record?.syncStatus == "SYNCED") {
-                            MainRepository.attendanceStatus.value = "marked"
                             Toast.makeText(
                                 this@DashboardActivity,
                                 "✅ Attendance marked! See laptop dashboard.",
@@ -161,13 +177,27 @@ class DashboardActivity : AppCompatActivity(), BleManager.DeviceCallback {
                         } else {
                             Toast.makeText(
                                 this@DashboardActivity,
-                                "Attendance saved locally (server offline)",
+                                "📱 Attendance saved locally (server offline)",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
+                    } else {
+                        Toast.makeText(
+                            this@DashboardActivity,
+                            "Failed to mark attendance",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
+        }
+    }
+
+    override fun onScanFailed(errorCode: Int) {
+        Log.e("Dashboard", "Scan failed: errorCode $errorCode")
+        runOnUiThread {
+            Toast.makeText(this, "BLE scan failed with error code $errorCode", Toast.LENGTH_LONG).show()
+            MainRepository.isScanningOrAdvertising = false
         }
     }
 

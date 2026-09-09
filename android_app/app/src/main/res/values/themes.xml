@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.SmartRoll" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.BlinkERP" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/bg_dark</item>
         <item name="colorAccent">@color/accent</item>
@@ -10,10 +10,10 @@
         <item name="android:windowLightStatusBar">false</item>
 
         <!-- Bottom Nav Style -->
-        <item name="bottomNavigationStyle">@style/Widget.SmartRoll.BottomNavigationView</item>
+        <item name="bottomNavigationStyle">@style/Widget.BlinkERP.BottomNavigationView</item>
     </style>
 
-    <style name="Widget.SmartRoll.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+    <style name="Widget.BlinkERP.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="itemIconSize">24dp</item>
         <item name="labelVisibilityMode">labeled</item>
         <item name="itemRippleColor">@color/primary_light</item>

@@ -39,6 +39,9 @@ public final class FragmentHomeBinding implements ViewBinding {
   public final MaterialButton btnStopAction;
 
   @NonNull
+  public final CardView miniBunkCard;
+
+  @NonNull
   public final GridLayout quickInfoLayout;
 
   @NonNull
@@ -55,6 +58,15 @@ public final class FragmentHomeBinding implements ViewBinding {
 
   @NonNull
   public final TextView tvGreeting;
+
+  @NonNull
+  public final TextView tvMiniBunkEmoji;
+
+  @NonNull
+  public final TextView tvMiniBunkSubtitle;
+
+  @NonNull
+  public final TextView tvMiniBunkTitle;
 
   @NonNull
   public final TextView tvRoleTag;
@@ -74,9 +86,11 @@ public final class FragmentHomeBinding implements ViewBinding {
   private FragmentHomeBinding(@NonNull NestedScrollView rootView, @NonNull CardView actionCard,
       @NonNull ViewPager2 bannerViewPager, @NonNull MaterialButton btnMainAction,
       @NonNull CardView btnOpenStudents, @NonNull MaterialButton btnStopAction,
-      @NonNull GridLayout quickInfoLayout, @NonNull TextView tvBleStatus,
-      @NonNull TextView tvBranch, @NonNull TextView tvDateTime, @NonNull TextView tvDetectedCount,
-      @NonNull TextView tvGreeting, @NonNull TextView tvRoleTag, @NonNull TextView tvSection,
+      @NonNull CardView miniBunkCard, @NonNull GridLayout quickInfoLayout,
+      @NonNull TextView tvBleStatus, @NonNull TextView tvBranch, @NonNull TextView tvDateTime,
+      @NonNull TextView tvDetectedCount, @NonNull TextView tvGreeting,
+      @NonNull TextView tvMiniBunkEmoji, @NonNull TextView tvMiniBunkSubtitle,
+      @NonNull TextView tvMiniBunkTitle, @NonNull TextView tvRoleTag, @NonNull TextView tvSection,
       @NonNull TextView tvStatusTitle, @NonNull TextView tvStudentCount,
       @NonNull TextView tvSubject) {
     this.rootView = rootView;
@@ -85,12 +99,16 @@ public final class FragmentHomeBinding implements ViewBinding {
     this.btnMainAction = btnMainAction;
     this.btnOpenStudents = btnOpenStudents;
     this.btnStopAction = btnStopAction;
+    this.miniBunkCard = miniBunkCard;
     this.quickInfoLayout = quickInfoLayout;
     this.tvBleStatus = tvBleStatus;
     this.tvBranch = tvBranch;
     this.tvDateTime = tvDateTime;
     this.tvDetectedCount = tvDetectedCount;
     this.tvGreeting = tvGreeting;
+    this.tvMiniBunkEmoji = tvMiniBunkEmoji;
+    this.tvMiniBunkSubtitle = tvMiniBunkSubtitle;
+    this.tvMiniBunkTitle = tvMiniBunkTitle;
     this.tvRoleTag = tvRoleTag;
     this.tvSection = tvSection;
     this.tvStatusTitle = tvStatusTitle;
@@ -155,6 +173,12 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.miniBunkCard;
+      CardView miniBunkCard = ViewBindings.findChildViewById(rootView, id);
+      if (miniBunkCard == null) {
+        break missingId;
+      }
+
       id = R.id.quickInfoLayout;
       GridLayout quickInfoLayout = ViewBindings.findChildViewById(rootView, id);
       if (quickInfoLayout == null) {
@@ -191,6 +215,24 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.tvMiniBunkEmoji;
+      TextView tvMiniBunkEmoji = ViewBindings.findChildViewById(rootView, id);
+      if (tvMiniBunkEmoji == null) {
+        break missingId;
+      }
+
+      id = R.id.tvMiniBunkSubtitle;
+      TextView tvMiniBunkSubtitle = ViewBindings.findChildViewById(rootView, id);
+      if (tvMiniBunkSubtitle == null) {
+        break missingId;
+      }
+
+      id = R.id.tvMiniBunkTitle;
+      TextView tvMiniBunkTitle = ViewBindings.findChildViewById(rootView, id);
+      if (tvMiniBunkTitle == null) {
+        break missingId;
+      }
+
       id = R.id.tvRoleTag;
       TextView tvRoleTag = ViewBindings.findChildViewById(rootView, id);
       if (tvRoleTag == null) {
@@ -222,9 +264,9 @@ public final class FragmentHomeBinding implements ViewBinding {
       }
 
       return new FragmentHomeBinding((NestedScrollView) rootView, actionCard, bannerViewPager,
-          btnMainAction, btnOpenStudents, btnStopAction, quickInfoLayout, tvBleStatus, tvBranch,
-          tvDateTime, tvDetectedCount, tvGreeting, tvRoleTag, tvSection, tvStatusTitle,
-          tvStudentCount, tvSubject);
+          btnMainAction, btnOpenStudents, btnStopAction, miniBunkCard, quickInfoLayout, tvBleStatus,
+          tvBranch, tvDateTime, tvDetectedCount, tvGreeting, tvMiniBunkEmoji, tvMiniBunkSubtitle,
+          tvMiniBunkTitle, tvRoleTag, tvSection, tvStatusTitle, tvStudentCount, tvSubject);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

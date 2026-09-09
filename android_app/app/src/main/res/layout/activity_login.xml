@@ -40,7 +40,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:text="SmartRoll"
+                    android:text="BlinkERP"
                     android:textColor="@color/text_muted"
                     android:textSize="14sp"
                     android:textStyle="bold"

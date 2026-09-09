@@ -38,6 +38,9 @@ public final class FragmentNotesBinding implements ViewBinding {
   public final Button btnCancelNote;
 
   @NonNull
+  public final MaterialButton btnRefreshNotes;
+
+  @NonNull
   public final Button btnSaveNote;
 
   @NonNull
@@ -63,7 +66,8 @@ public final class FragmentNotesBinding implements ViewBinding {
 
   private FragmentNotesBinding(@NonNull ConstraintLayout rootView,
       @NonNull LinearLayout addNoteForm, @NonNull MaterialButton btnAddNote,
-      @NonNull Button btnAttachPdf, @NonNull Button btnCancelNote, @NonNull Button btnSaveNote,
+      @NonNull Button btnAttachPdf, @NonNull Button btnCancelNote,
+      @NonNull MaterialButton btnRefreshNotes, @NonNull Button btnSaveNote,
       @NonNull EditText etNoteContent, @NonNull EditText etNoteTitle, @NonNull LinearLayout header,
       @NonNull ProgressBar loader, @NonNull RecyclerView rvNotes, @NonNull TextView tvEmpty,
       @NonNull TextView tvPdfName) {
@@ -72,6 +76,7 @@ public final class FragmentNotesBinding implements ViewBinding {
     this.btnAddNote = btnAddNote;
     this.btnAttachPdf = btnAttachPdf;
     this.btnCancelNote = btnCancelNote;
+    this.btnRefreshNotes = btnRefreshNotes;
     this.btnSaveNote = btnSaveNote;
     this.etNoteContent = etNoteContent;
     this.etNoteTitle = etNoteTitle;
@@ -133,6 +138,12 @@ public final class FragmentNotesBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnRefreshNotes;
+      MaterialButton btnRefreshNotes = ViewBindings.findChildViewById(rootView, id);
+      if (btnRefreshNotes == null) {
+        break missingId;
+      }
+
       id = R.id.btnSaveNote;
       Button btnSaveNote = ViewBindings.findChildViewById(rootView, id);
       if (btnSaveNote == null) {
@@ -182,8 +193,8 @@ public final class FragmentNotesBinding implements ViewBinding {
       }
 
       return new FragmentNotesBinding((ConstraintLayout) rootView, addNoteForm, btnAddNote,
-          btnAttachPdf, btnCancelNote, btnSaveNote, etNoteContent, etNoteTitle, header, loader,
-          rvNotes, tvEmpty, tvPdfName);
+          btnAttachPdf, btnCancelNote, btnRefreshNotes, btnSaveNote, etNoteContent, etNoteTitle,
+          header, loader, rvNotes, tvEmpty, tvPdfName);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

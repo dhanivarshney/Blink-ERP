@@ -62,17 +62,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    android:text="SMART ROLL"
-                    android:textColor="@color/text_muted"
+                    android:text="BLINK ERP"
+                    android:textColor="@color/primary"
                     android:textSize="13sp"
-                    android:letterSpacing="0.2"
+                    android:letterSpacing="0.3"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="Attendance,\nwithout the roll-call."
+                    android:text="BlinkERP —\nEnterprise Attendance."
                     android:textColor="@color/text_primary"
                     android:textSize="28sp"
                     android:textStyle="bold"
@@ -83,7 +83,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="Real Bluetooth detection. No fake simulation."
+                    android:text="Real BLE Detection. Next-Level ERP."
                     android:textColor="@color/text_muted"
                     android:textSize="14sp"
                     android:gravity="center" />
@@ -155,15 +155,54 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- Server IP - Subtle -->
+            <!-- Admin Card - Glassmorphism -->
+            <LinearLayout
+                android:id="@+id/adminCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/card_glass"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <Button
+                    android:id="@+id/btnAdmin"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="@drawable/rounded_button_outline"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:text="⚙️  Admin Login"
+                    android:textAllCaps="false"
+                    android:textColor="#FFB74D"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:text="Full ERP control &amp; User management"
+                    android:textColor="@color/text_muted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Server IP Pill -->
             <TextView
                 android:id="@+id/tvServerIp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
-                android:text="Server: http://10.0.2.2:5000"
-                android:textColor="@color/text_muted"
-                android:textSize="11sp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/rounded_button_outline"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:text="🌐 Server: http://192.168.194.186:5000"
+                android:textColor="@color/accent"
+                android:textSize="12sp"
+                android:textStyle="bold"
                 android:clickable="true"
                 android:focusable="true" />
 

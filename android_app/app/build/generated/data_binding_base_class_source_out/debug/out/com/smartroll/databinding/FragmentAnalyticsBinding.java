@@ -4,15 +4,17 @@ package com.smartroll.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.github.mikephil.charting.charts.PieChart;
+import com.google.android.material.button.MaterialButton;
 import com.smartroll.R;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -23,7 +25,19 @@ public final class FragmentAnalyticsBinding implements ViewBinding {
   private final NestedScrollView rootView;
 
   @NonNull
-  public final Button btnExport;
+  public final MaterialButton btnExport;
+
+  @NonNull
+  public final CardView bunkHeroCard;
+
+  @NonNull
+  public final View bunkProgressBar;
+
+  @NonNull
+  public final LinearLayout bunkStatusBadge;
+
+  @NonNull
+  public final View marker75;
 
   @NonNull
   public final PieChart pieChart;
@@ -32,15 +46,56 @@ public final class FragmentAnalyticsBinding implements ViewBinding {
   public final RecyclerView rvAnalytics;
 
   @NonNull
+  public final RecyclerView rvSubjects;
+
+  @NonNull
+  public final CardView subjectBreakdownCard;
+
+  @NonNull
+  public final TextView tvAnalyticsSubtitle;
+
+  @NonNull
+  public final TextView tvBunkMessage;
+
+  @NonNull
+  public final TextView tvBunkPct;
+
+  @NonNull
+  public final TextView tvBunkRatio;
+
+  @NonNull
+  public final TextView tvBunkStatus;
+
+  @NonNull
+  public final TextView tvStatusEmoji;
+
+  @NonNull
   public final TextView tvTotalRecords;
 
-  private FragmentAnalyticsBinding(@NonNull NestedScrollView rootView, @NonNull Button btnExport,
+  private FragmentAnalyticsBinding(@NonNull NestedScrollView rootView,
+      @NonNull MaterialButton btnExport, @NonNull CardView bunkHeroCard,
+      @NonNull View bunkProgressBar, @NonNull LinearLayout bunkStatusBadge, @NonNull View marker75,
       @NonNull PieChart pieChart, @NonNull RecyclerView rvAnalytics,
-      @NonNull TextView tvTotalRecords) {
+      @NonNull RecyclerView rvSubjects, @NonNull CardView subjectBreakdownCard,
+      @NonNull TextView tvAnalyticsSubtitle, @NonNull TextView tvBunkMessage,
+      @NonNull TextView tvBunkPct, @NonNull TextView tvBunkRatio, @NonNull TextView tvBunkStatus,
+      @NonNull TextView tvStatusEmoji, @NonNull TextView tvTotalRecords) {
     this.rootView = rootView;
     this.btnExport = btnExport;
+    this.bunkHeroCard = bunkHeroCard;
+    this.bunkProgressBar = bunkProgressBar;
+    this.bunkStatusBadge = bunkStatusBadge;
+    this.marker75 = marker75;
     this.pieChart = pieChart;
     this.rvAnalytics = rvAnalytics;
+    this.rvSubjects = rvSubjects;
+    this.subjectBreakdownCard = subjectBreakdownCard;
+    this.tvAnalyticsSubtitle = tvAnalyticsSubtitle;
+    this.tvBunkMessage = tvBunkMessage;
+    this.tvBunkPct = tvBunkPct;
+    this.tvBunkRatio = tvBunkRatio;
+    this.tvBunkStatus = tvBunkStatus;
+    this.tvStatusEmoji = tvStatusEmoji;
     this.tvTotalRecords = tvTotalRecords;
   }
 
@@ -72,8 +127,32 @@ public final class FragmentAnalyticsBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.btnExport;
-      Button btnExport = ViewBindings.findChildViewById(rootView, id);
+      MaterialButton btnExport = ViewBindings.findChildViewById(rootView, id);
       if (btnExport == null) {
+        break missingId;
+      }
+
+      id = R.id.bunkHeroCard;
+      CardView bunkHeroCard = ViewBindings.findChildViewById(rootView, id);
+      if (bunkHeroCard == null) {
+        break missingId;
+      }
+
+      id = R.id.bunkProgressBar;
+      View bunkProgressBar = ViewBindings.findChildViewById(rootView, id);
+      if (bunkProgressBar == null) {
+        break missingId;
+      }
+
+      id = R.id.bunkStatusBadge;
+      LinearLayout bunkStatusBadge = ViewBindings.findChildViewById(rootView, id);
+      if (bunkStatusBadge == null) {
+        break missingId;
+      }
+
+      id = R.id.marker75;
+      View marker75 = ViewBindings.findChildViewById(rootView, id);
+      if (marker75 == null) {
         break missingId;
       }
 
@@ -89,14 +168,64 @@ public final class FragmentAnalyticsBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.rvSubjects;
+      RecyclerView rvSubjects = ViewBindings.findChildViewById(rootView, id);
+      if (rvSubjects == null) {
+        break missingId;
+      }
+
+      id = R.id.subjectBreakdownCard;
+      CardView subjectBreakdownCard = ViewBindings.findChildViewById(rootView, id);
+      if (subjectBreakdownCard == null) {
+        break missingId;
+      }
+
+      id = R.id.tvAnalyticsSubtitle;
+      TextView tvAnalyticsSubtitle = ViewBindings.findChildViewById(rootView, id);
+      if (tvAnalyticsSubtitle == null) {
+        break missingId;
+      }
+
+      id = R.id.tvBunkMessage;
+      TextView tvBunkMessage = ViewBindings.findChildViewById(rootView, id);
+      if (tvBunkMessage == null) {
+        break missingId;
+      }
+
+      id = R.id.tvBunkPct;
+      TextView tvBunkPct = ViewBindings.findChildViewById(rootView, id);
+      if (tvBunkPct == null) {
+        break missingId;
+      }
+
+      id = R.id.tvBunkRatio;
+      TextView tvBunkRatio = ViewBindings.findChildViewById(rootView, id);
+      if (tvBunkRatio == null) {
+        break missingId;
+      }
+
+      id = R.id.tvBunkStatus;
+      TextView tvBunkStatus = ViewBindings.findChildViewById(rootView, id);
+      if (tvBunkStatus == null) {
+        break missingId;
+      }
+
+      id = R.id.tvStatusEmoji;
+      TextView tvStatusEmoji = ViewBindings.findChildViewById(rootView, id);
+      if (tvStatusEmoji == null) {
+        break missingId;
+      }
+
       id = R.id.tvTotalRecords;
       TextView tvTotalRecords = ViewBindings.findChildViewById(rootView, id);
       if (tvTotalRecords == null) {
         break missingId;
       }
 
-      return new FragmentAnalyticsBinding((NestedScrollView) rootView, btnExport, pieChart,
-          rvAnalytics, tvTotalRecords);
+      return new FragmentAnalyticsBinding((NestedScrollView) rootView, btnExport, bunkHeroCard,
+          bunkProgressBar, bunkStatusBadge, marker75, pieChart, rvAnalytics, rvSubjects,
+          subjectBreakdownCard, tvAnalyticsSubtitle, tvBunkMessage, tvBunkPct, tvBunkRatio,
+          tvBunkStatus, tvStatusEmoji, tvTotalRecords);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

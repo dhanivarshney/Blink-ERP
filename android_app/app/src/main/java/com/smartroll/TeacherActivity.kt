@@ -24,7 +24,7 @@ import com.smartroll.repository.MainRepository
 import kotlinx.coroutines.launch
 
 /**
- * SmartRoll — Teacher Dashboard
+ * BlinkERP — Teacher Dashboard
  * Start Class → BLE advertise → students detected → End Class
  */
 class TeacherActivity : AppCompatActivity(), BleManager.DeviceCallback {
@@ -116,8 +116,8 @@ class TeacherActivity : AppCompatActivity(), BleManager.DeviceCallback {
     }
 
     private fun checkPermissions() {
-        if (!PermissionManager.hasPermissions(this)) {
-            PermissionManager.requestPermissions(this, PERMISSION_REQUEST_CODE)
+        if (!PermissionManager.hasPermissions(this, "teacher")) {
+            PermissionManager.requestPermissions(this, PERMISSION_REQUEST_CODE, "teacher")
         }
     }
 

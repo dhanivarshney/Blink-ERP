@@ -1,11 +1,13 @@
 package com.smartroll.fragments
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.smartroll.DashboardActivity
@@ -14,10 +16,12 @@ import com.smartroll.db.UserEntity
 import com.smartroll.repository.MainRepository
 import androidx.viewpager2.widget.ViewPager2
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HomeFragment : Fragment() {
 
@@ -65,6 +69,7 @@ class HomeFragment : Fragment() {
         val btnMain = view.findViewById<Button>(R.id.btnMainAction)
         val btnStop = view.findViewById<Button>(R.id.btnStopAction)
         val btnOpenStudents = view.findViewById<View>(R.id.btnOpenStudents)
+        val miniBunkCard = view.findViewById<CardView>(R.id.miniBunkCard)
 
         btnMain.setOnClickListener {
             (activity as? DashboardActivity)?.startBleAction()
@@ -79,6 +84,11 @@ class HomeFragment : Fragment() {
         btnOpenStudents.setOnClickListener {
             androidx.navigation.fragment.NavHostFragment.findNavController(this)
                 .navigate(R.id.nav_students)
+        }
+        
+        miniBunkCard.setOnClickListener {
+            androidx.navigation.fragment.NavHostFragment.findNavController(this)
+                .navigate(R.id.nav_analytics)
         }
     }
 
@@ -115,7 +125,7 @@ class HomeFragment : Fragment() {
     private fun setupBanners(view: View) {
         val viewPager = view.findViewById<ViewPager2>(R.id.bannerViewPager)
         val banners = listOf(
-            BannerItem("Welcome to SmartRoll", "Smart attendance for modern hackathons.", "🚀", 0xFF667EEA.toInt()),
+            BannerItem("Welcome to BlinkERP", "Smart attendance for modern hackathons.", "🚀", 0xFF667EEA.toInt()),
             BannerItem("Auto-Attendance", "BLE based tracking works offline.", "📡", 0xFF764BA2.toInt()),
             BannerItem("PYQ Folders", "Access all study material instantly.", "📝", 0xFF24243E.toInt())
         )
@@ -172,6 +182,43 @@ class HomeFragment : Fragment() {
             view.findViewById<TextView>(R.id.tvSection).text = user?.section ?: "N/A"
             
             updateLiveUi(view)
+            
+            if (user?.role == "student") {
+                loadMiniBunkCard(view, user)
+            }
+        }
+    }
+    
+    private suspend fun loadMiniBunkCard(view: View, user: UserEntity) {
+        val miniBunkCard = view.findViewById<CardView>(R.id.miniBunkCard)
+        val remoteData = withContext(Dispatchers.IO) {
+            try {
+                com.smartroll.api.ApiService.getStudentAnalytics(user.name, user.branch, user.section)
+            } catch (e: Exception) { null }
+        }
+        
+        if (remoteData != null) {
+            miniBunkCard.visibility = View.VISIBLE
+            val status = remoteData.optString("eligibility_status", "Safe")
+            val bunkMsg = remoteData.optString("bunk_message", "")
+            val pct = remoteData.optDouble("attendance_pct", 0.0)
+            
+            val tvEmoji = view.findViewById<TextView>(R.id.tvMiniBunkEmoji)
+            val tvTitle = view.findViewById<TextView>(R.id.tvMiniBunkTitle)
+            val tvSubtitle = view.findViewById<TextView>(R.id.tvMiniBunkSubtitle)
+            
+            tvTitle.text = bunkMsg
+            tvSubtitle.text = String.format("Current Attendance: %.1f%%", pct)
+            
+            if (status.equals("Safe", true)) {
+                tvEmoji.text = "✅"
+                miniBunkCard.setCardBackgroundColor(Color.parseColor("#0D3026")) // Dark Greenish
+                tvSubtitle.setTextColor(Color.parseColor("#00C853"))
+            } else {
+                tvEmoji.text = "⚠️"
+                miniBunkCard.setCardBackgroundColor(Color.parseColor("#3B1717")) // Dark Reddish
+                tvSubtitle.setTextColor(Color.parseColor("#FF5252"))
+            }
         }
     }
 }

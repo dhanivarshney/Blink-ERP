@@ -23,6 +23,14 @@
             android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRefreshNotes"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔄 Refresh"
+            android:textColor="@color/accent" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddNote"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"

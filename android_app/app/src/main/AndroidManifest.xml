@@ -3,7 +3,7 @@
     package="com.smartroll">
 
     <!-- Bluetooth permissions for API 31+ -->
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
@@ -23,8 +23,8 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="SmartRoll"
-        android:theme="@style/Theme.SmartRoll"
+        android:label="BlinkERP"
+        android:theme="@style/Theme.BlinkERP"
         android:usesCleartextTraffic="true">
 
         <activity

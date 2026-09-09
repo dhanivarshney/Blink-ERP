@@ -10,7 +10,7 @@ import com.smartroll.repository.MainRepository
 import kotlinx.coroutines.launch
 
 /**
- * SmartRoll — Registration Screen
+ * BlinkERP — Registration Screen
  * Teacher: name, password, course, branch, section, subject
  * Student: name, password, course, branch, section
  */
@@ -45,6 +45,28 @@ private val otherBranches = listOf("General", "Marketing", "Finance", "HR")
         val tvSubjectLabel = findViewById<TextView>(R.id.tvSubjectLabel)
 
         titleText.text = if (role == "teacher") "Teacher Registration" else "Student Registration"
+        
+        val tvRegServerIp = findViewById<TextView>(R.id.tvRegServerIp)
+        tvRegServerIp.text = "🌐 Server: ${ApiService.serverUrl} (Tap to change)"
+        tvRegServerIp.setOnClickListener {
+            val input = EditText(this)
+            input.hint = "192.168.194.186"
+            val current = ApiService.serverUrl.replace("http://", "").replace(":5000", "")
+            input.setText(current)
+
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Set Laptop IP")
+                .setMessage("Your Laptop WiFi IP is 192.168.194.186\n(Port :5000 will be added automatically)")
+                .setView(input)
+                .setPositiveButton("Save") { _, _ ->
+                    val ip = input.text.toString().trim()
+                    ApiService.updateUrl(this, ip)
+                    tvRegServerIp.text = "🌐 Server: ${ApiService.serverUrl} (Tap to change)"
+                    Toast.makeText(this, "Server updated to ${ApiService.serverUrl}!", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
         
         // Hide subject for students
         val teacherOnlyVisibility = if (role == "teacher") android.view.View.VISIBLE else android.view.View.GONE
@@ -120,12 +142,11 @@ private val otherBranches = listOf("General", "Marketing", "Finance", "HR")
                 val result = repository.register(name, password, role, course, year, branch, section, subject)
 
                 if (result.isSuccess) {
-                    Toast.makeText(this@RegisterActivity, "Registration successful! Please login to continue.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@RegisterActivity, "Registration successful! Welcome, $name", Toast.LENGTH_SHORT).show()
 
-                    // Go to Login Screen
-                    val intent = Intent(this@RegisterActivity, LoginActivity::class.java).apply {
-                        putExtra("role", role)
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP // Clear registration from stack
+                    // Registration is permanent: skip straight to the Student / Teacher home screen without re-registering
+                    val intent = Intent(this@RegisterActivity, DashboardActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
                     startActivity(intent)
                     finish()

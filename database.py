@@ -1,5 +1,5 @@
 """
-SmartRoll — Database Layer
+BlinkERP — Database Layer
 ----------------------------------------------------------
 Schema is designed college-level from day one (branch, section,
 subject all stored per record) even though the MVP UI only
@@ -22,7 +22,7 @@ import hashlib
 from datetime import datetime
 from contextlib import contextmanager
 
-DB_PATH = "smartroll.db"
+DB_PATH = "BlinkERP.db"
 
 
 def _hash_password(password: str) -> str:
@@ -230,6 +230,33 @@ def init_db():
                     )
                 except sqlite3.IntegrityError:
                     pass
+
+        # Seed default PYQs if empty
+        pyq_count = conn.execute("SELECT COUNT(*) as c FROM pyqs").fetchone()["c"]
+        if pyq_count == 0:
+            default_pyqs = [
+                ("System", "CSE", "Data Structures & Algorithms", "DSA End-Sem Question Paper 2024", "3", "2024", "End-Sem", "https://drive.google.com/drive/folders/1RjrS65gXzj3e8WgEuupoKvORYIkaN0gy"),
+                ("System", "CSE", "Database Management Systems", "DBMS Mid-Sem Examination 2024", "4", "2024", "Mid-Sem", "https://drive.google.com/drive/folders/1YnOHoSe6hTj-5ay8jJQBV82Ccd_FzPq7"),
+                ("System", "CSE", "Operating Systems", "OS End-Term Paper 2023", "4", "2023", "End-Sem", "https://drive.google.com/drive/folders/1YnOHoSe6hTj-5ay8jJQBV82Ccd_FzPq7"),
+                ("System", "CSE", "Computer Networks", "CN End-Sem Paper 2024", "5", "2024", "End-Sem", "https://drive.google.com/drive/folders/1LamJnDD42nB0bVJjBYOuippVBMHJoKbP"),
+                ("System", "All", "Engineering Mathematics I", "Maths-I End-Sem Paper 2023", "1", "2023", "End-Sem", "https://drive.google.com/drive/folders/15bkgrVGA5s5Mh1q9l2KLMW9HIboPJ9Vb"),
+                ("System", "All", "Engineering Physics", "Physics Mid-Sem Paper 2023", "2", "2023", "Mid-Sem", "https://drive.google.com/drive/folders/1Rq-lxFVc5_ZEAMXCw6W2enBd-pUQPlWW"),
+                ("System", "CSE", "Compiler Design", "Compiler Design Paper 2023", "6", "2023", "End-Sem", "https://drive.google.com/drive/folders/196BrUsA15q_rlmlLMkz_32GkjhrOuYn9"),
+                ("System", "CSE AIML", "Machine Learning & AI", "ML End-Sem Paper 2024", "7", "2024", "End-Sem", "https://drive.google.com/drive/folders/1Q1BR4mNFJuHMskY5pRvNmUrSe8BsvnGS"),
+            ]
+            for t_name, br, sub, title, sem, yr, ex, link in default_pyqs:
+                conn.execute("""
+                    INSERT INTO pyqs (teacher_name, branch, subject, title, semester, year, exam_type, drive_link, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                """, (t_name, br, sub, title, sem, yr, ex, link))
+
+        # Seed sample note if empty
+        notes_count = conn.execute("SELECT COUNT(*) as c FROM class_notes").fetchone()["c"]
+        if notes_count == 0:
+            conn.execute("""
+                INSERT INTO class_notes (teacher_name, branch, section, subject, title, content, created_at)
+                VALUES ('Prof. Sharma', 'CSE', 'A', 'Data Structures', 'Module 1: Binary Search Trees & AVL Trees', 'Complete handwritten notes covering BST insertion, deletion, and AVL tree rotations with solved gate questions.', datetime('now'))
+            """)
 
 
 # ================================================================
@@ -795,10 +822,10 @@ def get_class_notes(teacher_name=None, branch=None, section=None, subject=None):
         query += " AND teacher_name=?"
         params.append(teacher_name)
     if branch:
-        query += " AND branch=?"
+        query += " AND (branch=? OR branch='All' OR branch='' OR branch IS NULL)"
         params.append(branch)
     if section:
-        query += " AND section=?"
+        query += " AND (section=? OR section='All' OR section='' OR section IS NULL)"
         params.append(section)
     if subject:
         query += " AND subject=?"
@@ -1007,3 +1034,211 @@ def get_monthly_summary():
             d["attendance_pct"] = round((d["present"] / total * 100), 1) if total > 0 else 0
             result.append(d)
         return result
+
+
+def update_user_password(user_id, new_password):
+    """Update user password by ID."""
+    hashed = _hash_password(new_password)
+    with get_conn() as conn:
+        conn.execute("UPDATE users SET password=? WHERE id=?", (hashed, user_id))
+        return True
+
+
+def get_student_full_analytics(student_name, branch=None, section=None):
+    """
+    Returns comprehensive personal analytics for a student:
+    - Overall attendance %, total sessions, present, absent
+    - Bunk Calculator metrics (bunkable count or classes needed for 75%)
+    - Subject-wise attendance breakdown
+    - Chronological attendance timeline
+    """
+    with get_conn() as conn:
+        query = "SELECT id, teacher_name, branch, section, subject, date, start_time FROM sessions WHERE 1=1"
+        params = []
+        if branch and section:
+            query += " AND (branch = ? AND section = ?)"
+            params.extend([branch, section])
+        query += " ORDER BY date DESC, start_time DESC"
+        
+        sessions = [dict(r) for r in conn.execute(query, params).fetchall()]
+        
+        att_rows = conn.execute(
+            "SELECT session_id, status, mode, marked_at FROM attendance WHERE student_name = ?",
+            (student_name,)
+        ).fetchall()
+        
+        marked_map = {r["session_id"]: dict(r) for r in att_rows}
+        
+        attended_session_ids = set(marked_map.keys())
+        existing_session_ids = set(s["id"] for s in sessions)
+        missing_ids = attended_session_ids - existing_session_ids
+        if missing_ids:
+            placeholders = ",".join("?" for _ in missing_ids)
+            extra = [dict(r) for r in conn.execute(
+                f"SELECT id, teacher_name, branch, section, subject, date, start_time FROM sessions WHERE id IN ({placeholders})",
+                list(missing_ids)
+            ).fetchall()]
+            sessions.extend(extra)
+            sessions.sort(key=lambda s: (s.get("date", ""), s.get("start_time", "")), reverse=True)
+            
+        total_sessions = len(sessions)
+        present_count = sum(1 for s in sessions if s["id"] in marked_map and marked_map[s["id"]]["status"] == "Present")
+        absent_count = total_sessions - present_count
+        attendance_pct = round((present_count / total_sessions * 100), 1) if total_sessions > 0 else 0.0
+        
+        # Bunk / Eligibility Calculator (75% rule)
+        if attendance_pct >= 75.0:
+            bunkable = int((present_count - 0.75 * total_sessions) / 0.75) if total_sessions > 0 else 0
+            eligibility_status = "Safe"
+            bunk_message = f"You can safely miss {bunkable} upcoming class(es) and remain above 75%!" if bunkable > 0 else "You are at 75% right now. Attend your next class to stay safe."
+            needed = 0
+        else:
+            needed = int((0.75 * total_sessions - present_count) / 0.25) + 1 if total_sessions > 0 else 1
+            eligibility_status = "Shortage"
+            bunk_message = f"You must attend the next {needed} consecutive class(es) to reach 75% exam eligibility!"
+            bunkable = 0
+            
+        # Subject-wise Breakdown
+        subject_stats = {}
+        for s in sessions:
+            sub = s.get("subject", "General") or "General"
+            if sub not in subject_stats:
+                subject_stats[sub] = {"total": 0, "present": 0}
+            subject_stats[sub]["total"] += 1
+            if s["id"] in marked_map and marked_map[s["id"]]["status"] == "Present":
+                subject_stats[sub]["present"] += 1
+                
+        subjects_list = []
+        for sub, data in subject_stats.items():
+            s_pct = round((data["present"] / data["total"] * 100), 1) if data["total"] > 0 else 0.0
+            subjects_list.append({
+                "subject": sub,
+                "total": data["total"],
+                "present": data["present"],
+                "absent": data["total"] - data["present"],
+                "percentage": s_pct,
+                "status": "Safe" if s_pct >= 75.0 else "At Risk"
+            })
+        subjects_list.sort(key=lambda x: x["percentage"], reverse=True)
+        
+        # Recent History
+        history = []
+        for s in sessions:
+            m = marked_map.get(s["id"])
+            history.append({
+                "session_id": s["id"],
+                "subject": s.get("subject", ""),
+                "teacher_name": s.get("teacher_name", ""),
+                "branch": s.get("branch", ""),
+                "section": s.get("section", ""),
+                "date": s.get("date", ""),
+                "start_time": s.get("start_time", ""),
+                "status": "Present" if m and m["status"] == "Present" else "Absent",
+                "mode": m.get("mode") if m else None,
+                "marked_at": m.get("marked_at") if m else None
+            })
+            
+        return {
+            "student_name": student_name,
+            "branch": branch,
+            "section": section,
+            "total_sessions": total_sessions,
+            "present_count": present_count,
+            "absent_count": absent_count,
+            "attendance_pct": attendance_pct,
+            "eligibility_status": eligibility_status,
+            "bunkable_classes": bunkable,
+            "needed_classes": needed,
+            "bunk_message": bunk_message,
+            "subjects": subjects_list,
+            "history": history
+        }
+
+
+# ================================================================
+# CLASS NOTES & PYQ METHODS
+# ================================================================
+
+def add_class_note(teacher_name, branch, section, subject, title, content="", file_path=None, file_name=None):
+    """Add a new class note / study material."""
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+    with get_conn() as conn:
+        cur = conn.execute("""
+            INSERT INTO class_notes (teacher_name, branch, section, subject, title, content, file_path, file_name, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (teacher_name, branch, section, subject, title, content, file_path, file_name, created_at))
+        return cur.lastrowid
+
+
+def get_class_notes(teacher_name=None, branch=None, section=None, subject=None):
+    """Get list of class notes with optional filters."""
+    with get_conn() as conn:
+        query = "SELECT * FROM class_notes WHERE 1=1"
+        params = []
+        if teacher_name:
+            query += " AND teacher_name = ?"
+            params.append(teacher_name)
+        if branch:
+            query += " AND branch = ?"
+            params.append(branch)
+        if section:
+            query += " AND section = ?"
+            params.append(section)
+        if subject:
+            query += " AND subject = ?"
+            params.append(subject)
+        query += " ORDER BY id DESC"
+        rows = conn.execute(query, params).fetchall()
+        return [dict(r) for r in rows]
+
+
+def delete_class_note(note_id):
+    """Delete a class note by ID."""
+    with get_conn() as conn:
+        conn.execute("DELETE FROM class_notes WHERE id=?", (note_id,))
+        return True
+
+
+def add_pyq(teacher_name, branch, subject, title, semester=None, year=None, exam_type="PYQ", content="", file_path=None, file_name=None, drive_link=None):
+    """Add a new PYQ paper entry."""
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+    with get_conn() as conn:
+        cur = conn.execute("""
+            INSERT INTO pyqs (teacher_name, branch, subject, title, semester, year, exam_type, content, file_path, file_name, drive_link, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (teacher_name or "System", branch, subject, title, semester, year, exam_type, content, file_path, file_name, drive_link, created_at))
+        return cur.lastrowid
+
+
+def get_pyqs(teacher_name=None, branch=None, subject=None, semester=None, year=None):
+    """Get list of PYQs with optional filters."""
+    with get_conn() as conn:
+        query = "SELECT * FROM pyqs WHERE 1=1"
+        params = []
+        if teacher_name:
+            query += " AND teacher_name = ?"
+            params.append(teacher_name)
+        if branch:
+            query += " AND (branch = ? OR branch = 'All' OR branch = '')"
+            params.append(branch)
+        if subject:
+            query += " AND subject = ?"
+            params.append(subject)
+        if semester:
+            query += " AND semester = ?"
+            params.append(str(semester))
+        if year:
+            query += " AND year = ?"
+            params.append(str(year))
+        query += " ORDER BY id DESC"
+        rows = conn.execute(query, params).fetchall()
+        return [dict(r) for r in rows]
+
+
+
+def delete_pyq(pyq_id):
+    """Delete a PYQ by ID."""
+    with get_conn() as conn:
+        conn.execute("DELETE FROM pyqs WHERE id=?", (pyq_id,))
+        return True
+

@@ -35,11 +35,25 @@ class MainRepository(context: Context) {
     private val prefs = context.getSharedPreferences("smartroll_prefs", Context.MODE_PRIVATE)
 
     // ── Auth ─────────────────────────────────────────────────
+    fun saveUserSession(user: UserEntity) {
+        prefs.edit()
+            .putString("current_user_id", user.id)
+            .putString("user_name", user.name)
+            .putString("user_role", user.role)
+            .putString("user_course", user.course ?: "")
+            .putString("user_year", user.year ?: "")
+            .putString("user_branch", user.branch ?: "")
+            .putString("user_section", user.section ?: "")
+            .putString("user_subject", user.subject ?: "")
+            .putBoolean("is_logged_in", true)
+            .apply()
+    }
+
     suspend fun login(name: String, password: String, role: String): Result<UserEntity> {
         // Try local first
         val localUser = userDao.login(name, password, role)
         if (localUser != null) {
-            saveCurrentUserId(localUser.id)
+            saveUserSession(localUser)
             return Result.success(localUser)
         }
 
@@ -63,7 +77,7 @@ class MainRepository(context: Context) {
             )
             userDao.deleteUserByName(name)
             userDao.insertUser(user)
-            saveCurrentUserId(user.id)
+            saveUserSession(user)
             Result.success(user)
         } else {
             Result.failure(Exception("Login failed: Invalid credentials or Server unreachable"))
@@ -74,6 +88,18 @@ class MainRepository(context: Context) {
                          course: String, year: String, branch: String, section: String, subject: String?): Result<UserEntity> {
         val response = withContext(Dispatchers.IO) {
             try { ApiService.register(name, password, role, course, year, branch, section, subject) } catch (e: Exception) { null }
+        }
+
+        // If user already registered on the server, automatically log them in!
+        if (response != null && response.has("error")) {
+            val errorMsg = response.optString("error", "")
+            if (errorMsg.contains("Already registered", ignoreCase = true)) {
+                val loginRes = login(name, password, role)
+                if (loginRes.isSuccess) {
+                    return loginRes
+                }
+            }
+            return Result.failure(Exception(errorMsg))
         }
         
         val user = UserEntity(
@@ -87,8 +113,9 @@ class MainRepository(context: Context) {
             subject = subject,
             synced = response != null && response.has("user")
         )
+        userDao.deleteUserByName(name)
         userDao.insertUser(user)
-        saveCurrentUserId(user.id)
+        saveUserSession(user)
 
         return Result.success(user)
     }
@@ -98,8 +125,30 @@ class MainRepository(context: Context) {
     }
 
     suspend fun getCurrentUser(): UserEntity? {
-        val id = prefs.getString("current_user_id", null) ?: return null
-        return userDao.getUserById(id)
+        val isLoggedIn = prefs.getBoolean("is_logged_in", false)
+        val id = prefs.getString("current_user_id", null)
+        if (!isLoggedIn && id == null) return null
+
+        val localUser = if (id != null) userDao.getUserById(id) else null
+        if (localUser != null) return localUser
+
+        // Permanent fallback to SharedPreferences cached login
+        val name = prefs.getString("user_name", null) ?: return null
+        val role = prefs.getString("user_role", "student") ?: "student"
+        val restored = UserEntity(
+            id = id ?: java.util.UUID.randomUUID().toString(),
+            name = name,
+            password = "",
+            role = role,
+            course = prefs.getString("user_course", ""),
+            year = prefs.getString("user_year", ""),
+            branch = prefs.getString("user_branch", ""),
+            section = prefs.getString("user_section", ""),
+            subject = prefs.getString("user_subject", ""),
+            synced = true
+        )
+        userDao.insertUser(restored)
+        return restored
     }
 
     fun logout() {
@@ -315,12 +364,9 @@ class MainRepository(context: Context) {
     }
 
     // ── Attendance ───────────────────────────────────────────
-    suspend fun markAttendance(studentName: String, branch: String, section: String, mode: String, sessionId: String?): Result<AttendanceRecordEntity> {
-        // If sessionId is null, we might be in a mode where we don't know the session yet (like student detecting teacher)
-        // In offline mode, student might not know the remote session ID.
-        
+    suspend fun markAttendance(studentName: String, branch: String, section: String, mode: String = "Auto", sessionId: String? = null): Result<AttendanceRecordEntity> {
         val record = AttendanceRecordEntity(
-            sessionId = sessionId ?: "unknown",
+            sessionId = sessionId ?: "auto",
             studentName = studentName,
             branch = branch,
             section = section,
@@ -328,14 +374,18 @@ class MainRepository(context: Context) {
         )
         attendanceDao.insertRecord(record)
 
-        // Try remote (on IO thread)
+        // Try remote (on IO thread) calling exact POST /api/mark endpoint
         val response = withContext(Dispatchers.IO) {
             ApiService.markAttendance(studentName, branch, section, mode)
         }
         if (response != null && response.has("status")) {
             val status = response.getString("status")
             if (status == "marked" || status == "already_marked") {
-                val syncedRecord = record.copy(syncStatus = "SYNCED")
+                val remoteSessionId = response.optInt("session_id", 0).toString()
+                val syncedRecord = record.copy(
+                    sessionId = if (remoteSessionId != "0") remoteSessionId else record.sessionId,
+                    syncStatus = "SYNCED"
+                )
                 attendanceDao.updateRecord(syncedRecord)
                 return Result.success(syncedRecord)
             }

@@ -22,7 +22,7 @@ import com.smartroll.repository.MainRepository
 import kotlinx.coroutines.launch
 
 /**
- * SmartRoll — Student Dashboard
+ * BlinkERP — Student Dashboard
  * Join Class → BLE scan → detect teacher → auto-mark attendance
  * Works offline too (saves locally)
  */
@@ -107,8 +107,8 @@ class StudentActivity : AppCompatActivity(), BleManager.DeviceCallback {
     }
 
     private fun checkPermissions() {
-        if (!PermissionManager.hasPermissions(this)) {
-            PermissionManager.requestPermissions(this, PERMISSION_REQUEST_CODE)
+        if (!PermissionManager.hasPermissions(this, "student")) {
+            PermissionManager.requestPermissions(this, PERMISSION_REQUEST_CODE, "student")
         }
     }
 
@@ -116,6 +116,13 @@ class StudentActivity : AppCompatActivity(), BleManager.DeviceCallback {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.any { it != PackageManager.PERMISSION_GRANTED }) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val scanIndex = permissions.indexOf(android.Manifest.permission.BLUETOOTH_SCAN)
+                    if (scanIndex != -1 && grantResults[scanIndex] != PackageManager.PERMISSION_GRANTED) {
+                        PermissionManager.showOemScanPermissionMessage(this)
+                        return
+                    }
+                }
                 Toast.makeText(this, "Bluetooth/Location permissions are required for joining class", Toast.LENGTH_LONG).show()
             }
         }
@@ -136,12 +143,16 @@ class StudentActivity : AppCompatActivity(), BleManager.DeviceCallback {
             return
         }
 
-        val studentName = currentUser?.name ?: "Student"
+        // Location Services must be ON on Android 11 and below
+        if (!PermissionManager.checkAndPromptLocation(this)) {
+            return
+        }
+
         detectedDevices.clear()
         findViewById<TextView>(R.id.tvBleStatus).text = "🔍 Searching for teacher..."
         findViewById<Button>(R.id.btnJoinClass).isEnabled = false
 
-        // Start scanning for teacher
+        // Start scanning for teacher (no filter)
         bleManager.startScan(this)
 
         safetyHandler.postDelayed(safetyRunnable, 10000)
@@ -169,7 +180,7 @@ class StudentActivity : AppCompatActivity(), BleManager.DeviceCallback {
     override fun onDeviceFound(name: String, address: String, rssi: Int, id: String) {
         if (!id.contains("TEACHER")) return
 
-        // 🔥 CRITICAL: Immediately halt all radio modules to clear buffer
+        // Immediately halt all radio modules to clear buffer
         stopBleOperations()
 
         if (address in detectedDevices) return
@@ -177,7 +188,7 @@ class StudentActivity : AppCompatActivity(), BleManager.DeviceCallback {
 
         val teacherName = name.trim()
         runOnUiThread {
-            findViewById<TextView>(R.id.tvDetectedCount).text = "${detectedDevices.size} devices detected"
+            findViewById<TextView>(R.id.tvDetectedCount).text = "${detectedDevices.size} teacher detected"
             findViewById<TextView>(R.id.tvBleStatus).text = "📡 Found Teacher: $teacherName"
         }
 
@@ -186,14 +197,10 @@ class StudentActivity : AppCompatActivity(), BleManager.DeviceCallback {
         val section = user.section ?: return
         val studentName = user.name
 
+        // Exact endpoint: POST /api/mark with student_name, branch, section, mode = "Auto"
         lifecycleScope.launch {
-            // Find the active session for this branch/section from the server
-            val sessionResult = repository.getActiveSession(branch, section)
-            val sessionId = sessionResult?.remoteId?.toString() ?: "unknown"
+            val result = repository.markAttendance(studentName, branch, section, "Auto")
 
-            val result = repository.markAttendance(studentName, branch, section, "Auto", sessionId)
-
-            // 🔥 FIX: Re-implemented the missing and incomplete UI logic block safely
             runOnUiThread {
                 findViewById<Button>(R.id.btnJoinClass).isEnabled = true
                 if (result.isSuccess) {
@@ -210,6 +217,14 @@ class StudentActivity : AppCompatActivity(), BleManager.DeviceCallback {
                     Toast.makeText(this@StudentActivity, "Failed to mark attendance.", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    override fun onScanFailed(errorCode: Int) {
+        runOnUiThread {
+            findViewById<TextView>(R.id.tvBleStatus).text = "⚠️ Scan failed (error code: $errorCode)"
+            Toast.makeText(this@StudentActivity, "BLE scan failed with error code $errorCode", Toast.LENGTH_LONG).show()
+            findViewById<Button>(R.id.btnJoinClass).isEnabled = true
         }
     }
 

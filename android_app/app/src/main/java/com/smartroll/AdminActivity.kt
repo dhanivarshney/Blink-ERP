@@ -66,6 +66,8 @@ class AdminActivity : AppCompatActivity() {
         spinnerSection.onItemSelectedListener = listener
     }
 
+    private val remoteIdMap = mutableMapOf<String, Int>()
+
     private fun filterUsers() {
         val role = spinnerRole.selectedItem.toString()
         val branch = spinnerBranch.selectedItem.toString()
@@ -76,21 +78,28 @@ class AdminActivity : AppCompatActivity() {
             (branch == "All Branches" || (u.branch != null && u.branch.equals(branch, true))) &&
             (section == "All Sections" || (u.section != null && u.section.equals(section, true)))
         }
-        rvUsers.adapter = AdminUserAdapter(filtered) { showDeleteConfirm(it) }
+        rvUsers.adapter = AdminUserAdapter(
+            users = filtered,
+            onItemClick = { showUserActions(it) },
+            onDelete = { showDeleteConfirm(it) }
+        )
     }
 
     private fun loadAllUsers() {
         loader.visibility = View.VISIBLE
         lifecycleScope.launch {
             val localUsers = repository.getAllLocalUsers()
-            val remoteUsersJson = try {ApiService.getUsers() } catch (e: Exception) { null }
+            val remoteUsersJson = try { ApiService.getUsers() } catch (e: Exception) { null }
             
             val remoteUsers = mutableListOf<UserEntity>()
             if (remoteUsersJson != null) {
                 for (i in 0 until remoteUsersJson.length()) {
                     val u = remoteUsersJson.getJSONObject(i)
+                    val name = u.getString("name")
+                    val uid = u.optInt("id", 0)
+                    if (uid > 0) remoteIdMap[name] = uid
                     remoteUsers.add(UserEntity(
-                        name = u.getString("name"),
+                        name = name,
                         password = u.optString("password", "N/A"),
                         role = u.getString("role"),
                         course = u.optString("course", ""),
@@ -107,6 +116,62 @@ class AdminActivity : AppCompatActivity() {
             filterUsers()
             loader.visibility = View.GONE
         }
+    }
+
+    private fun showUserActions(user: UserEntity) {
+        val options = arrayOf("🔑 Reset Password", "🗑️ Delete User")
+        AlertDialog.Builder(this)
+            .setTitle(user.name)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> promptResetPassword(user)
+                    1 -> showDeleteConfirm(user)
+                }
+            }
+            .show()
+    }
+
+    private fun promptResetPassword(user: UserEntity) {
+        val input = android.widget.EditText(this).apply {
+            hint = "Enter new password (min 4 chars)"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        val container = android.widget.FrameLayout(this).apply {
+            setPadding(50, 30, 50, 20)
+            addView(input)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Reset Password: ${user.name}")
+            .setView(container)
+            .setPositiveButton("Update") { _, _ ->
+                val newPass = input.text.toString().trim()
+                if (newPass.length < 4) {
+                    Toast.makeText(this, "Password must be at least 4 characters", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                val serverId = remoteIdMap[user.name]
+                lifecycleScope.launch {
+                    val success = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        try {
+                            if (serverId != null && serverId > 0) {
+                                val res = ApiService.updateUserPassword(serverId, newPass)
+                                res != null && res.optString("status") == "updated"
+                            } else {
+                                true
+                            }
+                        } catch (e: Exception) { false }
+                    }
+                    if (success) {
+                        Toast.makeText(this@AdminActivity, "Password updated successfully!", Toast.LENGTH_SHORT).show()
+                        loadAllUsers()
+                    } else {
+                        Toast.makeText(this@AdminActivity, "Failed to update password", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun showDeleteConfirm(user: UserEntity) {
@@ -126,6 +191,7 @@ class AdminActivity : AppCompatActivity() {
 
     class AdminUserAdapter(
         private val users: List<UserEntity>,
+        private val onItemClick: (UserEntity) -> Unit,
         private val onDelete: (UserEntity) -> Unit
     ) : RecyclerView.Adapter<AdminUserAdapter.VH>() {
         
@@ -148,8 +214,10 @@ class AdminActivity : AppCompatActivity() {
             h.tag.text = u.course ?: "N/A"
             h.btnDelete.visibility = View.VISIBLE
             h.btnDelete.setOnClickListener { onDelete(u) }
+            h.itemView.setOnClickListener { onItemClick(u) }
         }
 
         override fun getItemCount() = users.size
     }
 }
+

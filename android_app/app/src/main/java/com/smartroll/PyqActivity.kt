@@ -13,7 +13,7 @@ import com.smartroll.repository.MainRepository
 import kotlinx.coroutines.launch
 
 /**
- * SmartRoll — PYQ Papers Activity
+ * BlinkERP — PYQ Papers Activity
  * Shows list of PYQ papers with Google Drive links
  */
 class PyqActivity : AppCompatActivity() {

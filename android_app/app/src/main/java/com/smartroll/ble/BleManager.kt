@@ -13,8 +13,8 @@ import android.util.Log
 class BleManager(private val context: Context) {
 
     companion object {
-        val SMARTROLL_UUID: java.util.UUID = java.util.UUID.fromString("12345678-1234-1234-1234-123456789abc")
-        val DATA_UUID: ParcelUuid = ParcelUuid.fromString("0000FF01-0000-1000-8000-00805f9b34fb")
+        val SMARTROLL_SERVICE_UUID: java.util.UUID = java.util.UUID.fromString("0000b00b-0000-1000-8000-00805f9b34fb")
+        val SMARTROLL_UUID: java.util.UUID = SMARTROLL_SERVICE_UUID
     }
 
     private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -26,15 +26,20 @@ class BleManager(private val context: Context) {
     private var isScanning = false
     private var isAdvertising = false
 
-    private var lastFoundTime = 0L
+    private val detectedAddresses = mutableSetOf<String>()
+
+    fun alreadySeen(address: String): Boolean = address in detectedAddresses
+    fun markSeen(address: String) { detectedAddresses.add(address) }
+    fun clearSeen() { detectedAddresses.clear() }
 
     interface DeviceCallback {
         fun onDeviceFound(name: String, address: String, rssi: Int, id: String)
         fun onScanStopped()
+        fun onScanFailed(errorCode: Int) {}
     }
 
     @SuppressLint("MissingPermission")
-    fun startAdvertising(userId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun startAdvertising(userId: String = "", onSuccess: () -> Unit, onError: (String) -> Unit) {
         stopAdvertising()
 
         Handler(Looper.getMainLooper()).postDelayed({
@@ -44,43 +49,46 @@ class BleManager(private val context: Context) {
                 return@postDelayed
             }
 
-            if (bluetoothAdapter?.isEnabled != true) {
-                onError("Bluetooth OFF hai")
-                return@postDelayed
-            }
-
-            val data = AdvertiseData.Builder()
-                .addServiceUuid(ParcelUuid(SMARTROLL_UUID))
-                .addServiceData(DATA_UUID, userId.take(20).toByteArray()) // Truncate to avoid size limit
-                .setIncludeDeviceName(false) // Disable name to save packet space
-                .build()
-
+            // Fix for Teacher (advertiser) side:
             val settings = AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
-                .setConnectable(true)
+                .setConnectable(false)
+                .build()
+
+            val data = AdvertiseData.Builder()
+                .addServiceUuid(ParcelUuid(SMARTROLL_SERVICE_UUID))
+                .setIncludeDeviceName(false)   // MUST be false — this is what fixes error 1
                 .build()
 
             activeAdvertiseCallback = object : AdvertiseCallback() {
                 override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
                     isAdvertising = true
-                    Log.d("BleManager", "Advertising started with ID: $userId")
+                    Log.d("BleManager", "Teacher beacon advertising started successfully")
                     onSuccess()
                 }
                 override fun onStartFailure(errorCode: Int) {
-                    Log.e("BleManager", "Advertising failed: $errorCode")
                     isAdvertising = false
                     activeAdvertiseCallback = null
-                    onError("Error $errorCode")
+                    val errorDetail = when (errorCode) {
+                        ADVERTISE_FAILED_DATA_TOO_LARGE -> "ADVERTISE_FAILED_DATA_TOO_LARGE (error 1)"
+                        ADVERTISE_FAILED_TOO_MANY_ADVERTISERS -> "ADVERTISE_FAILED_TOO_MANY_ADVERTISERS (error 2)"
+                        ADVERTISE_FAILED_ALREADY_STARTED -> "ADVERTISE_FAILED_ALREADY_STARTED (error 3)"
+                        ADVERTISE_FAILED_INTERNAL_ERROR -> "ADVERTISE_FAILED_INTERNAL_ERROR (error 4)"
+                        ADVERTISE_FAILED_FEATURE_UNSUPPORTED -> "ADVERTISE_FAILED_FEATURE_UNSUPPORTED (error 5)"
+                        else -> "errorCode: $errorCode"
+                    }
+                    Log.e("BleManager", "Advertising failed: $errorDetail")
+                    onError(errorDetail)
                 }
             }
 
             try {
                 advertiser?.startAdvertising(settings, data, activeAdvertiseCallback)
             } catch (e: SecurityException) {
-                onError("Permission denied")
+                onError("Permission denied: ${e.message}")
             }
-        }, 200) // Fast start
+        }, 200)
     }
 
     @SuppressLint("MissingPermission")
@@ -100,34 +108,55 @@ class BleManager(private val context: Context) {
             return
         }
 
+        clearSeen()
+
+        // Fix for Student (scanner) side:
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
 
-        val filter = ScanFilter.Builder()
-            .setServiceUuid(ParcelUuid(SMARTROLL_UUID))
-            .build()
-
+        // Scan with NO filter (emptyList()) to avoid OEM 128-bit filter drop issue
         activeScanCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                val currentTime = System.currentTimeMillis()
-                if (currentTime - lastFoundTime < 2000) return 
-                lastFoundTime = currentTime
+                val isOurs = result.scanRecord?.serviceUuids?.any {
+                    it.uuid == SMARTROLL_SERVICE_UUID
+                } == true
+                if (!isOurs) return  // ignore unrelated nearby BLE devices
 
-                val data = result.scanRecord?.getServiceData(DATA_UUID)
-                if (data != null && data.isNotEmpty()) {
-                    callback.onDeviceFound(
-                        result.device.name ?: "Unknown",
-                        result.device.address,
-                        result.rssi,
-                        String(data)
-                    )
+                // de-duplicate so we don't fire multiple times for the same device
+                val addr = result.device.address
+                if (alreadySeen(addr)) return
+                markSeen(addr)
+
+                val deviceName = try {
+                    result.device.name ?: "Teacher"
+                } catch (_: SecurityException) {
+                    "Teacher"
                 }
+
+                callback.onDeviceFound(
+                    deviceName,
+                    addr,
+                    result.rssi,
+                    "TEACHER"
+                )
+            }
+
+            override fun onScanFailed(errorCode: Int) {
+                val errorDetail = when (errorCode) {
+                    SCAN_FAILED_ALREADY_STARTED -> "SCAN_FAILED_ALREADY_STARTED (error 1)"
+                    SCAN_FAILED_APPLICATION_REGISTRATION_FAILED -> "SCAN_FAILED_APPLICATION_REGISTRATION_FAILED (error 2)"
+                    SCAN_FAILED_INTERNAL_ERROR -> "SCAN_FAILED_INTERNAL_ERROR (error 3)"
+                    SCAN_FAILED_FEATURE_UNSUPPORTED -> "SCAN_FAILED_FEATURE_UNSUPPORTED (error 4)"
+                    else -> "errorCode: $errorCode"
+                }
+                Log.e("BleManager", "Scan failed: $errorDetail")
+                callback.onScanFailed(errorCode)
             }
         }
 
         try {
-            bleScanner?.startScan(listOf(filter), settings, activeScanCallback)
+            bleScanner?.startScan(emptyList(), settings, activeScanCallback)  // emptyList() = no filter
             isScanning = true
         } catch (e: SecurityException) {
             callback.onScanStopped()

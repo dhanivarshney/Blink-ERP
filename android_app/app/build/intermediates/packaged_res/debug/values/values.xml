@@ -39,8 +39,8 @@
     <color name="warning">#FFAB40</color>
     <color name="warning_bg">#3D2E0A</color>
     <color name="white">#FFFFFF</color>
-    <string name="app_name">SmartRoll</string>
-    <style name="Theme.SmartRoll" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <string name="app_name">BlinkERP</string>
+    <style name="Theme.BlinkERP" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/bg_dark</item>
         <item name="colorAccent">@color/accent</item>
@@ -50,9 +50,9 @@
         <item name="android:windowLightStatusBar">false</item>
 
         
-        <item name="bottomNavigationStyle">@style/Widget.SmartRoll.BottomNavigationView</item>
+        <item name="bottomNavigationStyle">@style/Widget.BlinkERP.BottomNavigationView</item>
     </style>
-    <style name="Widget.SmartRoll.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+    <style name="Widget.BlinkERP.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="itemIconSize">24dp</item>
         <item name="labelVisibilityMode">labeled</item>
         <item name="itemRippleColor">@color/primary_light</item>

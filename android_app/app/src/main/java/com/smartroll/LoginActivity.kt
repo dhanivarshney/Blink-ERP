@@ -13,7 +13,7 @@ import com.smartroll.repository.MainRepository
 import kotlinx.coroutines.launch
 
 /**
- * SmartRoll — Login Screen
+ * BlinkERP — Login Screen
  * Teacher or Student login with name + password
  */
 class LoginActivity : AppCompatActivity() {
@@ -30,7 +30,11 @@ class LoginActivity : AppCompatActivity() {
         role = intent.getStringExtra("role") ?: "teacher"
 
         val titleText = findViewById<TextView>(R.id.loginTitle)
-        titleText.text = if (role == "teacher") "👩‍🏫 Teacher Login" else "🧑‍🎓 Student Login"
+        titleText.text = when (role) {
+            "teacher" -> "👩‍🏫 Teacher Login"
+            "admin" -> "⚙️ Admin Login"
+            else -> "🧑‍🎓 Student Login"
+        }
 
         val etName = findViewById<EditText>(R.id.etName)
         val etPassword = findViewById<EditText>(R.id.etPassword)
@@ -40,6 +44,10 @@ class LoginActivity : AppCompatActivity() {
 
         etServerUrl.setText(ApiService.serverUrl)
         btnLogin.text = "Login as ${role.replaceFirstChar { it.uppercase() }}"
+        
+        if (role == "admin") {
+            tvSwitch.visibility = android.view.View.GONE
+        }
 
         btnLogin.setOnClickListener {
             val name = etName.text.toString().trim()

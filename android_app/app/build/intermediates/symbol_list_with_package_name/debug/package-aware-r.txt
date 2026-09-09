@@ -3292,6 +3292,7 @@ id actions
 id activity_chooser_view_content
 id add
 id addNoteForm
+id adminCard
 id adminHeader
 id adminLoader
 id alertTitle
@@ -3327,6 +3328,7 @@ id bounceBoth
 id bounceEnd
 id bounceStart
 id btnAddNote
+id btnAdmin
 id btnAttachPdf
 id btnCancelNote
 id btnDelete
@@ -3341,6 +3343,7 @@ id btnOpenFullDrive
 id btnOpenStudents
 id btnPyq
 id btnPyqBack
+id btnRefreshNotes
 id btnRegister
 id btnSaveNote
 id btnStartClass
@@ -3350,6 +3353,9 @@ id btnSync
 id btnTeacher
 id btnViewRecords
 id btnViewUsers
+id bunkHeroCard
+id bunkProgressBar
+id bunkStatusBadge
 id buttonPanel
 id cache_measures
 id callMeasure
@@ -3511,6 +3517,7 @@ id logoContainer
 id lottie_layer_name
 id ltr
 id m3_side_sheet
+id marker75
 id marquee
 id masked
 id match_constraint
@@ -3539,6 +3546,7 @@ id matrix
 id message
 id middle
 id mini
+id miniBunkCard
 id month_grid
 id month_navigation_bar
 id month_navigation_fragment_toggle
@@ -3658,6 +3666,7 @@ id rvAnalytics
 id rvHistory
 id rvNotes
 id rvStudents
+id rvSubjects
 id rvUsers
 id save_non_transition_alpha
 id save_overlay_view
@@ -3729,6 +3738,7 @@ id staticPostLayout
 id stop
 id stretch
 id studentCard
+id subjectBreakdownCard
 id submenuarrow
 id submit_area
 id subtitle
@@ -3781,23 +3791,33 @@ id transition_position
 id transition_scene_layoutid_cache
 id transition_transform
 id triangle
+id tvAnalyticsSubtitle
 id tvAppName
 id tvBannerDesc
 id tvBannerIcon
 id tvBannerTitle
 id tvBleStatus
 id tvBranch
+id tvBunkMessage
+id tvBunkPct
+id tvBunkRatio
+id tvBunkStatus
 id tvDateTime
 id tvDetectedCount
 id tvEmpty
 id tvGreeting
+id tvMiniBunkEmoji
+id tvMiniBunkSubtitle
+id tvMiniBunkTitle
 id tvPdfIndicator
 id tvPdfName
 id tvPyqEmpty
 id tvPyqTitle
+id tvRegServerIp
 id tvRoleTag
 id tvSection
 id tvServerIp
+id tvStatusEmoji
 id tvStatusTitle
 id tvStudentCount
 id tvSubject
@@ -4768,6 +4788,7 @@ style Theme_AppCompat_Light_Dialog_MinWidth
 style Theme_AppCompat_Light_DialogWhenLarge
 style Theme_AppCompat_Light_NoActionBar
 style Theme_AppCompat_NoActionBar
+style Theme_BlinkERP
 style Theme_Design
 style Theme_Design_BottomSheetDialog
 style Theme_Design_Light
@@ -4848,7 +4869,6 @@ style Theme_MaterialComponents_Light_NoActionBar
 style Theme_MaterialComponents_Light_NoActionBar_Bridge
 style Theme_MaterialComponents_NoActionBar
 style Theme_MaterialComponents_NoActionBar_Bridge
-style Theme_SmartRoll
 style ThemeOverlay_AppCompat
 style ThemeOverlay_AppCompat_ActionBar
 style ThemeOverlay_AppCompat_Dark
@@ -5036,6 +5056,7 @@ style Widget_AppCompat_TextView
 style Widget_AppCompat_TextView_SpinnerItem
 style Widget_AppCompat_Toolbar
 style Widget_AppCompat_Toolbar_Button_Navigation
+style Widget_BlinkERP_BottomNavigationView
 style Widget_Compat_NotificationActionContainer
 style Widget_Compat_NotificationActionText
 style Widget_Design_AppBarLayout
@@ -5339,7 +5360,6 @@ style Widget_MaterialComponents_Toolbar_Primary
 style Widget_MaterialComponents_Toolbar_PrimarySurface
 style Widget_MaterialComponents_Toolbar_Surface
 style Widget_MaterialComponents_Tooltip
-style Widget_SmartRoll_BottomNavigationView
 style Widget_Support_CoordinatorLayout
 styleable ActionBar background backgroundSplit backgroundStacked contentInsetEnd contentInsetEndWithActions contentInsetLeft contentInsetRight contentInsetStart contentInsetStartWithNavigation customNavigationLayout displayOptions divider elevation height hideOnContentScroll homeAsUpIndicator homeLayout icon indeterminateProgressStyle itemPadding logo navigationMode popupTheme progressBarPadding progressBarStyle subtitle subtitleTextStyle title titleTextStyle
 styleable ActionBarLayout android_layout_gravity

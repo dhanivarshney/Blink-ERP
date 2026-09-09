@@ -1,234 +1,242 @@
 [
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_logo_bg.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/logo_bg.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_gradient_red.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\gradient_red.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_rounded_button_outline.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/rounded_button_outline.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_register.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_register.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_card_white.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/card_white.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_fragment_profile.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\fragment_profile.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_history.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_history.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_gradient_purple.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\gradient_purple.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_fragment_analytics.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/fragment_analytics.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\color_nav_item_color.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\color\\nav_item_color.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_fragment_home.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/fragment_home.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\ic_launcher_background.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_input_field_light.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/input_field_light.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_gradient_header.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\gradient_header.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/mipmap-xhdpi_ic_launcher.png.flat",
-        "source": "com.smartroll.app-main-54:/mipmap-xhdpi/ic_launcher.png"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_logo_bg.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\logo_bg.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_input_bg.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/input_bg.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_ic_home.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\ic_home.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_ic_home.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/ic_home.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_teacher.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_teacher.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_gradient_green.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/gradient_green.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_input_bg.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\input_bg.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/mipmap-hdpi_ic_launcher.png.flat",
-        "source": "com.smartroll.app-main-54:/mipmap-hdpi/ic_launcher.png"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_ic_analytics.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\ic_analytics.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_teacher.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_teacher.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\mipmap-mdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\mipmap-mdpi\\ic_launcher.png"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_tag_background.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/tag_background.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_student.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_student.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_card_status_success.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/card_status_success.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_pyq.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_pyq.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_login.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_login.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_input_field_light.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\input_field_light.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_logo_circle_outline.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/logo_circle_outline.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\ic_launcher_foreground.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/color_nav_item_color.xml.flat",
-        "source": "com.smartroll.app-main-54:/color/nav_item_color.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_card_status_success.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\card_status_success.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_admin.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_admin.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_item_row.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\item_row.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_item_row.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/item_row.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\menu_bottom_nav_menu.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\menu\\bottom_nav_menu.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/mipmap-anydpi-v26_ic_launcher.xml.flat",
-        "source": "com.smartroll.app-main-54:/mipmap-anydpi-v26/ic_launcher.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_logo_circle_outline.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\logo_circle_outline.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_gradient_red.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/gradient_red.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_splash.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_splash.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/mipmap-xxhdpi_ic_launcher.png.flat",
-        "source": "com.smartroll.app-main-54:/mipmap-xxhdpi/ic_launcher.png"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_item_banner.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\item_banner.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_splash.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_splash.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_ic_profile.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\ic_profile.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_gradient_purple.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/gradient_purple.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\mipmap-xxhdpi\\ic_launcher.png"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_ic_launcher_background.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/ic_launcher_background.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_card_bg.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\card_bg.xml"
     },
     {
         "merged": "com.smartroll.app-merged_res-52:/layout_activity_main.xml.flat",
         "source": "com.smartroll.app-main-54:/layout/activity_main.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_people.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_people.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\anim_slide_in_right.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\anim\\slide_in_right.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_item_banner.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/item_banner.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\anim_slide_out_right.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\anim\\slide_out_right.xml"
+    },
+    {
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\mipmap-xxxhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\mipmap-hdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\mipmap-hdpi\\ic_launcher.png"
     },
     {
         "merged": "com.smartroll.app-merged_res-52:/layout_activity_register.xml.flat",
         "source": "com.smartroll.app-main-54:/layout/activity_register.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/anim_slide_in_right.xml.flat",
-        "source": "com.smartroll.app-main-54:/anim/slide_in_right.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_tag_background.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\tag_background.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_input_field_dark.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/input_field_dark.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\mipmap-anydpi-v26\\ic_launcher.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/mipmap-mdpi_ic_launcher.png.flat",
-        "source": "com.smartroll.app-main-54:/mipmap-mdpi/ic_launcher.png"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_input_field_dark.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\input_field_dark.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/menu_bottom_nav_menu.xml.flat",
-        "source": "com.smartroll.app-main-54:/menu/bottom_nav_menu.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_rounded_button_outline.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\rounded_button_outline.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_card_pale_bg.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/card_pale_bg.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_fragment_notes.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\fragment_notes.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_pyq.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_pyq.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_card_status_info.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\card_status_info.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_ic_profile.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/ic_profile.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_ic_notes.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\ic_notes.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_student.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_student.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\navigation_nav_graph.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\navigation\\nav_graph.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_ic_analytics.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/ic_analytics.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_notes.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_notes.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/mipmap-xxxhdpi_ic_launcher.png.flat",
-        "source": "com.smartroll.app-main-54:/mipmap-xxxhdpi/ic_launcher.png"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_gradient_green.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\gradient_green.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_card_dark.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/card_dark.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\anim_slide_in_left.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\anim\\slide_in_left.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_ic_notes.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/ic_notes.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_fragment_students.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\fragment_students.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_fragment_profile.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/fragment_profile.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_history.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_history.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_notes.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_notes.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_dashboard.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_dashboard.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_fragment_pyq.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/fragment_pyq.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_fragment_home.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\fragment_home.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/anim_slide_out_left.xml.flat",
-        "source": "com.smartroll.app-main-54:/anim/slide_out_left.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_fragment_pyq.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\fragment_pyq.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_activity_dashboard.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/activity_dashboard.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_card_dark.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\card_dark.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_fragment_notes.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/fragment_notes.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_people.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_people.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/layout_fragment_students.xml.flat",
-        "source": "com.smartroll.app-main-54:/layout/fragment_students.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\anim_slide_out_left.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\anim\\slide_out_left.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/navigation_nav_graph.xml.flat",
-        "source": "com.smartroll.app-main-54:/navigation/nav_graph.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_login.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_login.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_ic_pyq.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/ic_pyq.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_activity_admin.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\activity_admin.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_gradient_header.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/gradient_header.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_card_pale_bg.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\card_pale_bg.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/anim_slide_out_right.xml.flat",
-        "source": "com.smartroll.app-main-54:/anim/slide_out_right.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_ic_pyq.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\ic_pyq.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_card_glass.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/card_glass.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_card_glass.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\card_glass.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_ic_launcher_foreground.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/ic_launcher_foreground.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\layout_fragment_analytics.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\layout\\fragment_analytics.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_card_bg.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/card_bg.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\drawable_card_white.xml.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\drawable\\card_white.xml"
     },
     {
-        "merged": "com.smartroll.app-merged_res-52:/drawable_card_status_info.xml.flat",
-        "source": "com.smartroll.app-main-54:/drawable/card_status_info.xml"
-    },
-    {
-        "merged": "com.smartroll.app-merged_res-52:/anim_slide_in_left.xml.flat",
-        "source": "com.smartroll.app-main-54:/anim/slide_in_left.xml"
+        "merged": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-merged_res-52:\\mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\hp\\.gradle\\daemon\\8.2\\com.smartroll.app-main-54:\\mipmap-xhdpi\\ic_launcher.png"
     }
 ]
