@@ -184,6 +184,46 @@ class TeacherActivity : AppCompatActivity(), BleManager.DeviceCallback {
 
             val msg = if (currentSession?.remoteId != null) "Class started! ID: ${currentSession?.remoteId}" else "Offline Session started!"
             Toast.makeText(this@TeacherActivity, msg, Toast.LENGTH_SHORT).show()
+            startTeacherLivePolling()
+        }
+    }
+
+    private var livePollJob: kotlinx.coroutines.Job? = null
+
+    private fun startTeacherLivePolling() {
+        livePollJob?.cancel()
+        livePollJob = lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            while (currentSession != null) {
+                val sessId = currentSession?.remoteId
+                if (sessId != null) {
+                    try {
+                        val liveData = com.smartroll.api.ApiService.getLiveSession(sessId)
+                        if (liveData != null && liveData.has("students")) {
+                            val arr = liveData.getJSONArray("students")
+                            val presentList = mutableListOf<String>()
+                            for (i in 0 until arr.length()) {
+                                val s = arr.getJSONObject(i)
+                                // Live endpoint now returns only Present students directly
+                                val sName = s.optString("name")
+                                if (sName.isNotBlank()) presentList.add(sName)
+                            }
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                val count = presentList.size
+                                if (count == 0) {
+                                    findViewById<TextView>(R.id.tvDetectedCount).text = "⏳ Waiting for students to join..."
+                                } else {
+                                    val nameLines = presentList.joinToString("\n") { "✅ $it" }
+                                    findViewById<TextView>(R.id.tvDetectedCount).text =
+                                        "🟢 $count student${if (count > 1) "s" else ""} present:\n$nameLines"
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w("TeacherPoll", "Poll error: ${e.message}")
+                    }
+                }
+                kotlinx.coroutines.delay(2500)
+            }
         }
     }
 
@@ -208,6 +248,8 @@ class TeacherActivity : AppCompatActivity(), BleManager.DeviceCallback {
 
     // 🔥 Helper for atomic resource cleanup
     private fun cleanupBleSystem() {
+        livePollJob?.cancel()
+        livePollJob = null
         bleManager.stopAdvertising()
     }
 

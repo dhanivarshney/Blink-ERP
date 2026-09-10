@@ -90,6 +90,26 @@ class HomeFragment : Fragment() {
             androidx.navigation.fragment.NavHostFragment.findNavController(this)
                 .navigate(R.id.nav_analytics)
         }
+
+        lifecycleScope.launch {
+            MainRepository.livePresentStudents.collect { students ->
+                if (!isAdded) return@collect
+                val countText = view.findViewById<TextView>(R.id.tvDetectedCount)
+                val liveList = view.findViewById<TextView>(R.id.tvLiveStudents)
+                if (currentUser?.role == "teacher" && isLive.value) {
+                    countText?.text = "🟢 ${students.size} students present"
+                    if (students.isNotEmpty()) {
+                        liveList?.visibility = View.VISIBLE
+                        liveList?.text = "👥 Present Students:\n" + students.joinToString("  •  ") { "✅ $it" }
+                    } else {
+                        liveList?.visibility = View.VISIBLE
+                        liveList?.text = "📡 Broadcasting BLE beacon... Waiting for students to connect."
+                    }
+                } else if (!isLive.value) {
+                    liveList?.visibility = View.GONE
+                }
+            }
+        }
     }
 
     private fun updateLiveUi(view: View?) {
@@ -177,9 +197,25 @@ class HomeFragment : Fragment() {
             view.findViewById<TextView>(R.id.tvDateTime).text = "${sdf.format(java.util.Date())} • ${timeSdf.format(java.util.Date())}"
 
             view.findViewById<TextView>(R.id.tvRoleTag).text = user?.role?.uppercase() ?: "USER"
-            view.findViewById<TextView>(R.id.tvSubject).text = user?.subject ?: "N/A"
-            view.findViewById<TextView>(R.id.tvBranch).text = user?.branch ?: "N/A"
-            view.findViewById<TextView>(R.id.tvSection).text = user?.section ?: "N/A"
+
+            val subjectVal = user?.subject?.takeIf { it.isNotBlank() && !it.equals("null", true) } ?: "General"
+            view.findViewById<TextView>(R.id.tvSubject).text = subjectVal
+
+            val branchVal = user?.branch?.takeIf { it.isNotBlank() && !it.equals("null", true) } ?: "All"
+            view.findViewById<TextView>(R.id.tvBranch).text = branchVal
+
+            val sectionVal = user?.section?.takeIf { it.isNotBlank() && !it.equals("null", true) } ?: "All"
+            view.findViewById<TextView>(R.id.tvSection).text = sectionVal
+
+            // Fetch real student count for this class
+            val queryBranch = user?.branch?.takeIf { it.isNotBlank() && !it.equals("null", true) }
+            val querySection = user?.section?.takeIf { it.isNotBlank() && !it.equals("null", true) }
+            var students = repository.getRegisteredUsers(queryBranch, querySection)
+            if (students.isEmpty() && (queryBranch != null || querySection != null)) {
+                // Fallback: fetch all if filtered was empty
+                students = repository.getRegisteredUsers(null, null)
+            }
+            view.findViewById<TextView>(R.id.tvStudentCount)?.text = "${students.size} Students"
             
             updateLiveUi(view)
             

@@ -30,6 +30,38 @@ class ProfileFragment : Fragment() {
 
         loadUserData(view)
 
+        val tvProfileServerIp = view.findViewById<TextView>(R.id.tvProfileServerIp)
+        tvProfileServerIp.text = "🌐 Server: ${com.smartroll.api.ApiService.serverUrl}"
+
+        view.findViewById<Button>(R.id.btnChangeServerIp).setOnClickListener {
+            val input = android.widget.EditText(requireContext())
+            input.hint = "https://blinkerp-live.loca.lt"
+            input.setText(com.smartroll.api.ApiService.serverUrl)
+
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Server URL")
+                .setMessage("Default: https://blinkerp-live.loca.lt\n(Works on all networks & 4G/5G)")
+                .setView(input)
+                .setPositiveButton("Save & Test") { _, _ ->
+                    val ip = input.text.toString().trim()
+                    com.smartroll.api.ApiService.updateUrl(requireContext(), ip)
+                    tvProfileServerIp.text = "🌐 Server: ${com.smartroll.api.ApiService.serverUrl}"
+                    
+                    lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        val (ok, msg) = com.smartroll.api.ApiService.testConnection()
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            if (ok) {
+                                Toast.makeText(requireContext(), "✅ Connected: $msg", Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(requireContext(), "⚠️ Warning: $msg (Check Wi-Fi)", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
         view.findViewById<Button>(R.id.btnLogout).setOnClickListener {
             showLogoutDialog()
         }

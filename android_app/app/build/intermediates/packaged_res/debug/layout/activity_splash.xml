@@ -16,12 +16,21 @@
 
 
 
+        <View
+            android:id="@+id/viewGlow"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_gravity="center"
+            android:background="@drawable/logo_circle_outline"
+            android:alpha="0" />
+
         <ImageView
             android:id="@+id/ivLogo"
             android:layout_width="140dp"
             android:layout_height="140dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_launcher_foreground"
+            android:padding="16dp"
+            android:src="@drawable/ic_blink_logo"
             android:background="@drawable/logo_bg" />
 
         <View

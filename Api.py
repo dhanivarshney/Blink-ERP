@@ -1,4 +1,4 @@
-﻿"""
+"""
 BlinkERP — API Server (Flask)
 ==========================================================
 Bridges Android app + Web frontend <-> shared SQLite database.
@@ -229,17 +229,25 @@ def mark():
     if not all(k in data and data[k] for k in required):
         return jsonify({"error": f"Missing fields, need: {required}"}), 400
 
-    session = db.get_active_session_for_section(data["branch"], data["section"])
-    if not session:
-        return jsonify({"error": "No active class session for this branch/section right now"}), 404
+    branch = data["branch"].strip()
+    section = data["section"].strip()
+    student_name = data["student_name"].strip()
 
-    # Ensure the student exists in the master roster (INSERT OR IGNORE), so
-    # they appear on the laptop's live dashboard roster even if they only
-    # registered via the app and were never added through the admin panel.
-    db.add_student(data["student_name"], data["branch"], data["section"])
+    # Try exact match first
+    session = db.get_active_session_for_section(branch, section)
+
+    # Fallback: any active session for this branch (section might differ in case/whitespace)
+    if not session:
+        session = db.get_any_active_session_for_branch(branch)
+
+    if not session:
+        return jsonify({"error": f"No active class for branch={branch} section={section}"}), 404
+
+    # Ensure the student exists in the master roster (INSERT OR IGNORE)
+    db.add_student(student_name, branch, section)
 
     mode = data.get("mode", "Auto")
-    marked = db.mark_attendance(session["id"], data["student_name"], "Present", mode)
+    marked = db.mark_attendance(session["id"], student_name, "Present", mode)
     if marked:
         return jsonify({"status": "marked", "session_id": session["id"]})
     else:
@@ -265,11 +273,11 @@ def stats():
 
 @app.route("/api/session/<int:session_id>/live", methods=["GET"])
 def session_live(session_id):
-    """Live session data — used by dashboard for real-time polling."""
-    session = db.get_session_by_id(session_id)
+    """Live session data — used by teacher app and dashboard for real-time polling.
+    Returns only actually-present students (no fake Absent rows)."""
+    session = db.get_session_by_id_live(session_id)
     if not session:
         return jsonify({"error": "Session not found"}), 404
-    # Return only what the dashboard needs for live updates
     return jsonify({
         "session_id": session["id"],
         "status": session["status"],
@@ -277,8 +285,8 @@ def session_live(session_id):
         "branch": session["branch"],
         "section": session["section"],
         "students": session["students"],
-        "present_count": sum(1 for s in session["students"] if s["status"] == "Present"),
-        "total_count": len(session["students"]),
+        "present_count": session["present_count"],
+        "total_count": session["total_count"],
     })
 
 
@@ -416,11 +424,12 @@ def delete_note(note_id):
 @app.route("/api/notes/upload", methods=["POST"])
 def upload_note_file():
     """Upload a file as class note."""
-    teacher_name = request.form.get("teacher_name", "")
-    branch = request.form.get("branch", "")
-    section = request.form.get("section", "")
-    subject = request.form.get("subject", "")
-    title = request.form.get("title", "")
+    teacher_name = request.form.get("teacher_name", "").strip()
+    branch = request.form.get("branch", "").strip()
+    section = request.form.get("section", "").strip()
+    subject = request.form.get("subject", "").strip()
+    title = request.form.get("title", "").strip()
+    content = request.form.get("content", "").strip()
 
     if not teacher_name or not branch or not section or not subject or not title:
         return jsonify({"error": "Missing required fields"}), 400
@@ -430,26 +439,31 @@ def upload_note_file():
         return jsonify({"error": "No file uploaded"}), 400
 
     os.makedirs("uploads", exist_ok=True)
-    file_path = os.path.join("uploads", file.filename)
+    from werkzeug.utils import secure_filename
+    safe_name = secure_filename(file.filename)
+    if not safe_name:
+        safe_name = "note.pdf"
+    disk_name = f"{int(datetime.now().timestamp())}_{safe_name}"
+    file_path = os.path.join("uploads", disk_name)
     file.save(file_path)
 
     note_id = db.add_class_note(
         teacher_name, branch, section, subject, title,
-        content=None, file_path=file_path, file_name=file.filename
+        content=content or None, file_path=file_path, file_name=safe_name
     )
-    return jsonify({"status": "uploaded", "note_id": note_id, "file_name": file.filename})
+    return jsonify({"status": "uploaded", "note_id": note_id, "file_name": safe_name})
 
 
 @app.route("/api/notes/download/<int:note_id>", methods=["GET"])
 def download_note(note_id):
-    """Download the file attached to a note."""
+    """Download or view the file attached to a note."""
     with db.get_conn() as conn:
         note = conn.execute("SELECT file_path, file_name FROM class_notes WHERE id=?", (note_id,)).fetchone()
     if not note or not note["file_path"]:
         return jsonify({"error": "File not found"}), 404
     if not os.path.exists(note["file_path"]):
         return jsonify({"error": "File missing from disk"}), 404
-    return send_file(note["file_path"], as_attachment=True, download_name=note["file_name"])
+    return send_file(note["file_path"], as_attachment=False, download_name=note["file_name"])
 
 
 # ================================================================
@@ -691,6 +705,73 @@ def analytics_ble():
 @app.route("/api/analytics/monthly", methods=["GET"])
 def analytics_monthly():
     return jsonify(db.get_monthly_summary())
+
+
+# ================================================================
+# TEACHER CLASS ANALYTICS
+# ================================================================
+
+@app.route("/api/teacher/analytics", methods=["GET"])
+def teacher_class_analytics():
+    """Returns class-level analytics for a teacher — all sessions with student attendance."""
+    branch = request.args.get("branch")
+    section = request.args.get("section")
+    teacher_name = request.args.get("teacher")
+
+    with db.get_conn() as conn:
+        query = "SELECT id, teacher_name, branch, section, subject, date, start_time, end_time, status FROM sessions WHERE 1=1"
+        params = []
+        if teacher_name:
+            query += " AND teacher_name = ?"
+            params.append(teacher_name)
+        if branch:
+            query += " AND branch = ?"
+            params.append(branch)
+        if section:
+            query += " AND section = ?"
+            params.append(section)
+        query += " ORDER BY date DESC, start_time DESC"
+        sessions = [dict(r) for r in conn.execute(query, params).fetchall()]
+
+        # For each session, get student list
+        result_sessions = []
+        total_present_all = 0
+        total_students_all = 0
+        for s in sessions:
+            att_rows = conn.execute(
+                "SELECT student_name, status, mode, marked_at FROM attendance WHERE session_id = ?",
+                (s["id"],)
+            ).fetchall()
+            present = [dict(r) for r in att_rows if r["status"] == "Present"]
+            # Get total students in this branch/section
+            total_stu = conn.execute(
+                "SELECT COUNT(*) as cnt FROM students WHERE branch=? AND section=?",
+                (s.get("branch", ""), s.get("section", ""))
+            ).fetchone()["cnt"]
+            absent_count = max(0, total_stu - len(present))
+            total_present_all += len(present)
+            total_students_all += total_stu
+            result_sessions.append({
+                "session_id": s["id"],
+                "subject": s.get("subject", ""),
+                "date": s.get("date", ""),
+                "start_time": s.get("start_time", ""),
+                "end_time": s.get("end_time", ""),
+                "status": s.get("status", ""),
+                "present_count": len(present),
+                "absent_count": absent_count,
+                "total_students": total_stu,
+                "present_students": [p["student_name"] for p in present],
+            })
+
+        overall_pct = round((total_present_all / total_students_all * 100), 1) if total_students_all > 0 else 0.0
+        return jsonify({
+            "sessions": result_sessions,
+            "total_sessions": len(result_sessions),
+            "overall_present": total_present_all,
+            "overall_absent": total_students_all - total_present_all,
+            "overall_pct": overall_pct,
+        })
 
 
 # ================================================================

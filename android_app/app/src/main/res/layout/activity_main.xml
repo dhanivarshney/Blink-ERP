@@ -199,7 +199,7 @@
                 android:paddingEnd="16dp"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"
-                android:text="🌐 Server: http://192.168.194.186:5000"
+                android:text="🌐 Server: https://actors-usgs-prairie-entertaining.trycloudflare.com"
                 android:textColor="@color/accent"
                 android:textSize="12sp"
                 android:textStyle="bold"

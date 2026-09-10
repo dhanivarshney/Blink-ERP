@@ -183,14 +183,26 @@ class NotesActivity : AppCompatActivity() {
             }
             
             h.itemView.setOnClickListener {
-                if (note.pdfPath != null) {
+                if (!note.pdfPath.isNullOrBlank()) {
                     try {
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.setDataAndType(Uri.parse(note.pdfPath), "application/pdf")
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        h.itemView.context.startActivity(intent)
+                        val uri = Uri.parse(note.pdfPath)
+                        if (note.pdfPath.startsWith("http://") || note.pdfPath.startsWith("https://")) {
+                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                            h.itemView.context.startActivity(intent)
+                        } else {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(uri, "application/pdf")
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            h.itemView.context.startActivity(intent)
+                        }
                     } catch (e: Exception) {
-                        Toast.makeText(h.itemView.context, "Cannot open PDF", Toast.LENGTH_SHORT).show()
+                        try {
+                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(note.pdfPath))
+                            h.itemView.context.startActivity(browserIntent)
+                        } catch (e2: Exception) {
+                            Toast.makeText(h.itemView.context, "Cannot open PDF", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }

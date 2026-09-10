@@ -117,6 +117,7 @@ class DashboardActivity : AppCompatActivity(), BleManager.DeviceCallback {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+                startTeacherLivePolling()
             }
 
             // Teacher only advertises (advertiser side)
@@ -133,7 +134,45 @@ class DashboardActivity : AppCompatActivity(), BleManager.DeviceCallback {
         }
     }
 
+    private var livePollJob: kotlinx.coroutines.Job? = null
+
+    private fun startTeacherLivePolling() {
+        livePollJob?.cancel()
+        livePollJob = lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            while (MainRepository.isScanningOrAdvertising) {
+                val sessId = currentSession?.remoteId
+                if (sessId != null) {
+                    try {
+                        val liveData = com.smartroll.api.ApiService.getLiveSession(sessId)
+                        if (liveData != null && liveData.has("students")) {
+                            val arr = liveData.getJSONArray("students")
+                            val presentList = mutableListOf<String>()
+                            for (i in 0 until arr.length()) {
+                                val s = arr.getJSONObject(i)
+                                if (s.optString("status") == "Present") {
+                                    val sName = s.optString("name")
+                                    val sSec = s.optString("section", "")
+                                    presentList.add(if (sSec.isNotEmpty()) "$sName ($sSec)" else sName)
+                                }
+                            }
+                            MainRepository.detectedDevices.clear()
+                            MainRepository.detectedDevices.addAll(presentList)
+                            MainRepository.livePresentStudents.value = presentList
+                        }
+                    } catch (e: Exception) {
+                        Log.e("Dashboard", "Poll live session error: ${e.message}")
+                    }
+                }
+                kotlinx.coroutines.delay(2000)
+            }
+        }
+    }
+
     fun stopBleAction() {
+        livePollJob?.cancel()
+        livePollJob = null
+        MainRepository.livePresentStudents.value = emptyList()
+
         bleManager.stopAdvertising()
         bleManager.stopScan(this)
         MainRepository.isScanningOrAdvertising = false

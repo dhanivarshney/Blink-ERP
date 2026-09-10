@@ -11,7 +11,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import com.smartroll.api.ApiService
 import com.smartroll.repository.MainRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * BlinkERP — Main Screen (Role Selection)
@@ -82,19 +84,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun showServerDialog() {
         val input = EditText(this)
-        input.hint = "192.168.194.186"
-        val current = ApiService.serverUrl.replace("http://", "").replace(":5000", "")
-        input.setText(current)
+        input.hint = "https://blinkerp-live.loca.lt"
+        input.setText(ApiService.serverUrl)
 
         AlertDialog.Builder(this)
-            .setTitle("Set Laptop IP")
-            .setMessage("Your Laptop WiFi IP is 192.168.194.186\n(Port :5000 will be added automatically)")
+            .setTitle("Server URL")
+            .setMessage("Default: https://blinkerp-live.loca.lt\n(Works on all networks & 4G/5G)")
             .setView(input)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton("Save & Test") { _, _ ->
                 val ip = input.text.toString().trim()
                 ApiService.updateUrl(this, ip)
                 findViewById<TextView>(R.id.tvServerIp).text = "🌐 Server: ${ApiService.serverUrl}\n(Tap to change IP)"
-                Toast.makeText(this, "Server updated to ${ApiService.serverUrl}!", Toast.LENGTH_SHORT).show()
+                
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val (ok, msg) = ApiService.testConnection()
+                    withContext(Dispatchers.Main) {
+                        if (ok) {
+                            Toast.makeText(this@MainActivity, "✅ Connected: $msg", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(this@MainActivity, "⚠️ Warning: $msg (Check Wi-Fi)", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()

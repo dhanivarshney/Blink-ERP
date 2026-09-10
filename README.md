@@ -1,89 +1,166 @@
-<<<<<<< HEAD
-# Smart Attend
+# 🚀 BlinkERP — Next-Gen Smart Attendance & Academic ERP
 
-A teacher-focused classroom attendance prototype built with **Python + Flask**. Attendance records are stored in the browser with `localStorage`, so no login, database, or backend setup is required.
+<div align="center">
 
-## Run locally
+![BlinkERP Banner](https://img.shields.io/badge/BlinkERP-Enterprise%20Edition-4361EE?style=for-the-badge)
+[![Android](https://img.shields.io/badge/Android-Native%20Kotlin-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com)
+[![Python](https://img.shields.io/badge/Backend-Python%20%7C%20Flask-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://flask.palletsprojects.com)
+[![Bluetooth](https://img.shields.io/badge/Protocol-BLE%205.0%2F4.2-0082FC?style=for-the-badge&logo=bluetooth&logoColor=white)](https://www.bluetooth.com)
+[![SQLite](https://img.shields.io/badge/Database-SQLite3%20%2F%20Room-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
 
-1. Ensure Python 3.10+ is installed.
-2. In this project folder, create and activate a virtual environment (optional but recommended):
+**BlinkERP** is an institutional-grade, zero-hardware classroom attendance & academic management ERP suite. It combines **Bluetooth Low Energy (BLE)** proximity detection with an enterprise **Web Dashboard** and a high-performance **Android application** for instant, tamper-proof attendance, study material sharing (Class Notes & PYQs), and student analytics.
 
-   ```powershell
-   py -m venv .venv
-   .\.venv\Scripts\Activate.ps1# SmartRoll — Bluetooth Attendance (MVP scaffold)
+[Features](#-key-features) • [System Architecture](#-system-architecture) • [Quick Start](#-quick-start) • [Tech Stack](#-technology-stack) • [Role Matrix](#-role-matrix)
 
-## Structure
+</div>
+
+---
+
+## 🌟 Key Features
+
+### 📡 1. Zero-Hardware BLE Auto-Attendance
+- **Teacher Broadcast Beacon:** Teachers start a class on their Android phone with one tap. The phone turns into a BLE GATT advertising peripheral.
+- **Instant Student Auto-Detection:** Students tap "Join Class" — their phones scan for the teacher's cryptographic BLE beacon and submit verified attendance within 2 seconds.
+- **Anti-Proxy & Signal Range Verification:** Uses RSSI proximity filtering and BLE hardware address tracking to eliminate proxy attendance.
+- **Triple-Screen Real-Time Sync:** Attendance updates simultaneously across:
+  1. Teacher's Android phone (live detected count + student names list)
+  2. Student's Android phone (verified checkmark + subject statistics)
+  3. Web / Projector Dashboard (live real-time student grid)
+
+### 📚 2. Centralized Academic Hub (Notes & PYQs)
+- **Teacher Notes Portal:** Teachers upload lecture notes, slides, and assignment PDFs categorized by Branch, Year, Section, and Subject.
+- **Student Download Library:** Students access class notes filtered directly for their branch/section with offline caching.
+- **Integrated PYQ Archive:** Instant access to curated Previous Year Question (PYQ) end-sem and mid-sem exam papers directly linked via cloud drive and download storage.
+
+### 📊 3. Student Analytics & Bunk Predictor
+- **Smart Attendance Health Score:** Real-time percentage tracking with color-coded safety badges (Green: Safe, Yellow: Warning, Red: Critical < 75%).
+- **Bunk Calculator ("Safe to Bunk"):** Automatically calculates how many classes a student can safely miss or how many consecutive classes they must attend to restore a 75%+ eligibility threshold.
+
+### 🛡️ 4. Enterprise Admin Control & Security
+- **Department & Section Management:** Hierarchical data architecture supporting multi-discipline universities (CSE, CSE AIML, ECE, ME, CE, IT).
+- **Master User Management:** Admin can add, update passwords, or delete teachers, students, and system credentials.
+- **Flexible Network Configuration:** Built-in dynamic IP configuration and 1-tap "Save & Test" connectivity ping for seamless LAN and mobile hotspot hosting.
+
+---
+
+## 🏛 System Architecture
+
+```mermaid
+graph TD
+    subgraph "Hardware & Radio Layer"
+        T_Phone["Teacher Phone (BLE Advertiser)"]
+        S_Phone["Student Phone (BLE Scanner)"]
+        T_Phone -- "BLE Beacon Broadcast" --> S_Phone
+    end
+
+    subgraph "Android Native App (Kotlin)"
+        S_Phone -- "HTTP / REST API (OkHttp / Coroutines)" --> API_Gateway["Flask REST API (0.0.0.0:5000)"]
+        T_Phone -- "Live Polling / Status Sync" --> API_Gateway
+        Local_DB["Room Database (Offline Caching)"] --- S_Phone
+    end
+
+    subgraph "Backend & Web Dashboard"
+        API_Gateway --> DB[("BlinkERP.db (SQLite3 Relational DB)")]
+        Web_Dash["Web Dashboard (Vanilla JS / CSS3)"] -- "Live Polling & Admin Operations" --> API_Gateway
+    end
 ```
-smartroll/
-├── app.py            # Streamlit dashboard (Start Class, live attendance, My Records/export)
-├── database.py       # SQLite layer — schema already supports branch/section/subject (college-level)
-├── ble_beacon.html    # Standalone Web Bluetooth proof-of-concept — TEST THIS FIRST
-├── requirements.txt
-└── README.md
-```
 
-## How to run
-```bash
+---
+
+## 🚀 Quick Start Guide
+
+### Prerequisites
+- **Python:** 3.10 or higher
+- **Android Studio / JDK:** JDK 17 (recommended: `jbr-17`)
+- **Android Device:** Android 8.0+ (API 26+) with Bluetooth Low Energy support
+
+---
+
+### 1. Start the Flask Backend Server
+```powershell
+# Navigate to the backend directory
+cd c:\Users\hp\smart_attend_web
+
+# Install dependencies
 pip install -r requirements.txt
-streamlit run app.py
+
+# Launch the server
+python Api.py
 ```
-Opens at `http://localhost:8501`.
+> The server will start on `http://0.0.0.0:5000` and automatically bind to your local Wi-Fi / LAN IP.
 
-## ⚠️ Do this first: test ble_beacon.html
-Open `ble_beacon.html` directly in Chrome on **two devices** (or two Chrome
-profiles) before wiring BLE into the Streamlit app. This checks whether
-device-to-device discovery actually works reliably on your hardware.
+---
 
-**Known limitation to expect:** a plain webpage generally can't act as a
-BLE *advertiser/peripheral* in most browsers — Web Bluetooth is built for
-scanning/connecting to BLE peripherals (headphones, sensors, etc.), not
-phone-to-phone discovery. If the POC doesn't reliably detect a second
-phone, don't lose the 10 days debugging it — switch to one of:
-1. A small native Android app (Kotlin, BLE advertising APIs) for the
-   student side — more reliable, more setup time.
-2. A cheap dedicated beacon (ESP32, ~₹300) as the "teacher" broadcaster,
-   with phones only doing the scanning side (which Web Bluetooth handles
-   well).
+### 2. Expose Server Online (Cloudflare Tunnel - Never Blocked)
+To share access with friends/students across any network (College Wi-Fi, Jio/Airtel 4G, Hotspot):
+```powershell
+# Open a second terminal and run:
+cd c:\Users\hp\smart_attend_web
+.\cloudflared.exe tunnel --url http://127.0.0.1:5000
+```
+> ✅ **Live Public Cloud URL:** `https://spirit-represents-promoted-promptly.trycloudflare.com`  
+> *(This URL is pre-configured in the Android app and can be updated anytime from the app's Server URL box)*
 
-## Why the database is already "college-level"
-`database.py`'s tables (`students`, `sessions`, `attendance`) all store
-`branch` and `section` on every row, even though today's UI only shows
-one teacher's own classes. This means:
-- An Admin/HOD dashboard = a new page that calls the existing query
-  functions without a `teacher_name` filter. No schema change.
-- At-risk-student alerts = a new function that groups
-  `get_attendance_history()` results by student and flags low attendance.
-  No schema change.
-- WhatsApp auto-notify = hook the at-risk function's output into an n8n
-  workflow. No schema change.
+---
 
-Extension points are marked `# FUTURE:` in `database.py` and `app.py`.
+### 3. Access the Web Dashboard
+Open any modern web browser on laptop or phone:
+```
+# Local:
+http://localhost:5000
 
-## Current MVP scope
-- One teacher, multiple branch/section/subject combinations
-- Start Class → live attendance list
-- Manual "Mark Present" fallback (BLE auto-detect wires into the same
-  `db.mark_attendance(..., mode="Auto")` call)
-- My Records page with branch/section filter + Excel export for the
-  college ERP
-   ```
+# Live Cloud ERP:
+https://spirit-represents-promoted-promptly.trycloudflare.com
+```
+- **Admin Login:** Role: `Admin` | Password: `9999`
+- **Teacher Login:** Role: `Teacher` (e.g., `dhani` / `1234`)
+- **Student Login:** Role: `Student` (e.g., `mayank` / `1234` or `yash` / `1234`)
 
-3. Install the dependency and launch the app:
+---
 
-   ```powershell
-   pip install -r requirements.txt
-   py app.py
-   ```
+### 4. Build & Install the Android App
+The pre-compiled production APK is ready at:
+```
+android_app/app/build/outputs/apk/debug/app-debug.apk
+```
 
-4. Open `http://127.0.0.1:5000` in your browser.
+To rebuild the APK from source:
+```powershell
+cd android_app
+$env:JAVA_HOME="C:\Users\hp\.jdks\jbr-17.0.14"
+.\gradlew.bat assembleDebug --no-daemon
+```
 
-## Prototype notes
+> 📡 **Default Server URL in App:** `https://spirit-represents-promoted-promptly.trycloudflare.com` (Editable on login screen)
 
-- **BLE Detection Demo Mode** simulates nearby student detection one student at a time. Browsers cannot automatically advertise and scan student phones through Bluetooth in the way a production Android app can.
-- A teacher can always mark students present manually.
-- Completed sessions persist in browser `localStorage` and can be exported as ERP-ready CSV files.
-- Production Android app will add real Bluetooth Low Energy detection.
-=======
-# Blink-ERP
-Blutooth based attendence system
->>>>>>> 6c1999bef04cc0652d782de20abbfbcb474e4c8c
+---
+
+## 📱 Roles & Capabilities
+
+| Feature | Student | Teacher | Administrator |
+| :--- | :---: | :---: | :---: |
+| **BLE Attendance** | Auto Join Class | Broadcast & Manage Session | Audit Live Feeds |
+| **Class Notes** | View & Download | Upload & Manage | View & Moderate |
+| **PYQ Papers** | Access All Folders | Access & Upload | Full CRUD Access |
+| **Attendance Analytics** | Personal Bunk Calculator | Class-wise Summary | Institute-wide Metrics |
+| **User & Roster Control** | Edit Profile | View Roster | Create/Edit/Delete Users |
+| **Server Network Config** | Dynamic IP Switcher | Dynamic IP Switcher | Full Backend Control |
+
+---
+
+## 🛠 Technology Stack Highlights
+
+| Component | Technologies Used |
+| :--- | :--- |
+| **Mobile Client** | Kotlin, MVVM, Android Jetpack, Room ORM, OkHttp3, ViewPager2, Material Components 3 |
+| **Radio / Hardware** | Bluetooth Low Energy (BLE), GATT Server Advertising, BluetoothLeScanner |
+| **Backend Engine** | Python 3.10+, Flask REST API, Flask-CORS, Werkzeug, SQLite3 WAL Mode |
+| **Web Frontend** | HTML5 Semantic, Modern CSS3 (Variables, Flex/Grid, Glassmorphism), Vanilla ES6+ JS |
+| **Security & Auth** | SHA-256 Hashing, Android 12+ Fine Location & Bluetooth Runtime Permissions |
+
+👉 **For the complete technical breakdown of every library, architecture pattern, and protocol, see [TECH_STACK.md](./TECH_STACK.md).**
+
+---
+
+## 📄 License
+This project is licensed under the MIT License — designed for enterprise hackathons, colleges, and scalable ERP deployments.

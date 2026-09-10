@@ -50,19 +50,28 @@ private val otherBranches = listOf("General", "Marketing", "Finance", "HR")
         tvRegServerIp.text = "🌐 Server: ${ApiService.serverUrl} (Tap to change)"
         tvRegServerIp.setOnClickListener {
             val input = EditText(this)
-            input.hint = "192.168.194.186"
-            val current = ApiService.serverUrl.replace("http://", "").replace(":5000", "")
-            input.setText(current)
+            input.hint = "https://blinkerp-live.loca.lt"
+            input.setText(ApiService.serverUrl)
 
             androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Set Laptop IP")
-                .setMessage("Your Laptop WiFi IP is 192.168.194.186\n(Port :5000 will be added automatically)")
+                .setTitle("Server URL")
+                .setMessage("Default: https://blinkerp-live.loca.lt\n(Works on all networks & 4G/5G)")
                 .setView(input)
-                .setPositiveButton("Save") { _, _ ->
+                .setPositiveButton("Save & Test") { _, _ ->
                     val ip = input.text.toString().trim()
                     ApiService.updateUrl(this, ip)
                     tvRegServerIp.text = "🌐 Server: ${ApiService.serverUrl} (Tap to change)"
-                    Toast.makeText(this, "Server updated to ${ApiService.serverUrl}!", Toast.LENGTH_SHORT).show()
+                    
+                    lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        val (ok, msg) = ApiService.testConnection()
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            if (ok) {
+                                Toast.makeText(this@RegisterActivity, "✅ Connected: $msg", Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(this@RegisterActivity, "⚠️ Warning: $msg (Check Wi-Fi)", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
@@ -73,24 +82,24 @@ private val otherBranches = listOf("General", "Marketing", "Finance", "HR")
         findViewById<android.view.View>(R.id.llSubject).visibility = teacherOnlyVisibility
         tvSubjectLabel.visibility = teacherOnlyVisibility
 
-        // Setup Year Spinner
-        val yearAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, years)
-        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        // Setup Year Spinner with explicit dark text layout for Android 12+
+        val yearAdapter = ArrayAdapter(this, R.layout.spinner_item_dark_text, years)
+        yearAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         spYear.adapter = yearAdapter
 
         // Setup Course Spinner
-        val courseAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, courses)
-        courseAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val courseAdapter = ArrayAdapter(this, R.layout.spinner_item_dark_text, courses)
+        courseAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         spCourse.adapter = courseAdapter
 
         // Setup Section Spinner
-        val sectionAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sections)
-        sectionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val sectionAdapter = ArrayAdapter(this, R.layout.spinner_item_dark_text, sections)
+        sectionAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         spSection.adapter = sectionAdapter
 
         // Default Subject Adapter
-        val subAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, subjectsDefault)
-        subAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val subAdapter = ArrayAdapter(this, R.layout.spinner_item_dark_text, subjectsDefault)
+        subAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         spSubject.adapter = subAdapter
 
         // Dynamic Subjects based on Year
@@ -98,9 +107,9 @@ private val otherBranches = listOf("General", "Marketing", "Finance", "HR")
             override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                 val selectedYear = years[position]
                 val subList = if (selectedYear == "2nd Year") subjects2ndYear else subjectsDefault
-                val subAdapter = ArrayAdapter(this@RegisterActivity, android.R.layout.simple_spinner_item, subList)
-                subAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                spSubject.adapter = subAdapter
+                val newSubAdapter = ArrayAdapter(this@RegisterActivity, R.layout.spinner_item_dark_text, subList)
+                newSubAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+                spSubject.adapter = newSubAdapter
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
@@ -110,8 +119,8 @@ private val otherBranches = listOf("General", "Marketing", "Finance", "HR")
             override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                 val selectedCourse = courses[position]
                 val branches = if (selectedCourse == "B.Tech") btechBranches else otherBranches
-                val branchAdapter = ArrayAdapter(this@RegisterActivity, android.R.layout.simple_spinner_item, branches)
-                branchAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                val branchAdapter = ArrayAdapter(this@RegisterActivity, R.layout.spinner_item_dark_text, branches)
+                branchAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
                 spBranch.adapter = branchAdapter
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}

@@ -1,6 +1,7 @@
 package com.smartroll.repository
 
 import android.content.Context
+import android.net.Uri
 import com.smartroll.api.ApiService
 import com.smartroll.db.AppDatabase
 import com.smartroll.db.AttendanceRecordEntity
@@ -13,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-class MainRepository(context: Context) {
+class MainRepository(private val context: Context) {
 
     private val db = AppDatabase.getDatabase(context)
     private val userDao = db.userDao()
@@ -30,6 +31,7 @@ class MainRepository(context: Context) {
 
         // UI feedback: set to "marked" when a student's attendance is synced to the server
         val attendanceStatus = MutableStateFlow<String?>(null)
+        val livePresentStudents = MutableStateFlow<List<String>>(emptyList())
     }
 
     private val prefs = context.getSharedPreferences("smartroll_prefs", Context.MODE_PRIVATE)
@@ -80,7 +82,8 @@ class MainRepository(context: Context) {
             saveUserSession(user)
             Result.success(user)
         } else {
-            Result.failure(Exception("Login failed: Invalid credentials or Server unreachable"))
+            val errMsg = response?.optString("error") ?: "Server unreachable"
+            Result.failure(Exception("Login failed: $errMsg"))
         }
     }
 
@@ -207,14 +210,19 @@ class MainRepository(context: Context) {
             if (arr != null) {
                 for (i in 0 until arr.length()) {
                     val obj = arr.getJSONObject(i)
+                    val noteId = obj.optInt("id", 0)
+                    val fileName = obj.optString("file_name", "").takeIf { it.isNotBlank() && it != "null" }
+                    val filePath = if (fileName != null) "${ApiService.serverUrl}/api/notes/download/$noteId" else null
+
                     list.add(NoteEntity(
-                        id = obj.optInt("id", 0),
+                        id = noteId,
                         teacherName = obj.optString("teacher_name", ""),
                         branch = obj.optString("branch", ""),
                         section = obj.optString("section", ""),
                         subject = obj.optString("subject", ""),
                         title = obj.getString("title"),
                         content = obj.optString("content", ""),
+                        pdfPath = filePath,
                         createdAt = obj.optString("created_at", "")
                     ))
                 }
@@ -233,11 +241,38 @@ class MainRepository(context: Context) {
     suspend fun saveNote(note: NoteEntity) {
         val response = withContext(Dispatchers.IO) {
             try {
-                ApiService.addNote(note.teacherName, note.branch, note.section, note.subject, note.title, note.content)
-            } catch (e: Exception) { null }
+                if (!note.pdfPath.isNullOrBlank() && (note.pdfPath.startsWith("content://") || note.pdfPath.startsWith("file://"))) {
+                    val uri = Uri.parse(note.pdfPath)
+                    ApiService.uploadNoteFile(
+                        context,
+                        note.teacherName,
+                        note.branch,
+                        note.section,
+                        note.subject,
+                        note.title,
+                        note.content,
+                        uri
+                    )
+                } else {
+                    ApiService.addNote(
+                        note.teacherName,
+                        note.branch,
+                        note.section,
+                        note.subject,
+                        note.title,
+                        note.content
+                    )
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("REPO", "Error saving note", e)
+                null
+            }
         }
         if (response != null && response.has("note_id")) {
-            val savedNote = note.copy(id = response.getInt("note_id"))
+            val noteId = response.getInt("note_id")
+            val remoteFileName = response.optString("file_name", "").takeIf { it.isNotBlank() && it != "null" }
+            val downloadUrl = if (remoteFileName != null) "${ApiService.serverUrl}/api/notes/download/$noteId" else note.pdfPath
+            val savedNote = note.copy(id = noteId, pdfPath = downloadUrl)
             noteDao.insertNote(savedNote)
         } else {
             noteDao.insertNote(note)

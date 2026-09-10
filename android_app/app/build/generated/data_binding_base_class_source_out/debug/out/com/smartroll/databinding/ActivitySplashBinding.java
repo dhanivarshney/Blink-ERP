@@ -34,16 +34,20 @@ public final class ActivitySplashBinding implements ViewBinding {
   public final TextView tvTagline;
 
   @NonNull
+  public final View viewGlow;
+
+  @NonNull
   public final View viewOutline;
 
   private ActivitySplashBinding(@NonNull ConstraintLayout rootView, @NonNull ImageView ivLogo,
       @NonNull FrameLayout logoContainer, @NonNull TextView tvAppName, @NonNull TextView tvTagline,
-      @NonNull View viewOutline) {
+      @NonNull View viewGlow, @NonNull View viewOutline) {
     this.rootView = rootView;
     this.ivLogo = ivLogo;
     this.logoContainer = logoContainer;
     this.tvAppName = tvAppName;
     this.tvTagline = tvTagline;
+    this.viewGlow = viewGlow;
     this.viewOutline = viewOutline;
   }
 
@@ -98,6 +102,12 @@ public final class ActivitySplashBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.viewGlow;
+      View viewGlow = ViewBindings.findChildViewById(rootView, id);
+      if (viewGlow == null) {
+        break missingId;
+      }
+
       id = R.id.viewOutline;
       View viewOutline = ViewBindings.findChildViewById(rootView, id);
       if (viewOutline == null) {
@@ -105,7 +115,7 @@ public final class ActivitySplashBinding implements ViewBinding {
       }
 
       return new ActivitySplashBinding((ConstraintLayout) rootView, ivLogo, logoContainer,
-          tvAppName, tvTagline, viewOutline);
+          tvAppName, tvTagline, viewGlow, viewOutline);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

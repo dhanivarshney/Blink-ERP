@@ -155,7 +155,7 @@ class StudentActivity : AppCompatActivity(), BleManager.DeviceCallback {
         // Start scanning for teacher (no filter)
         bleManager.startScan(this)
 
-        safetyHandler.postDelayed(safetyRunnable, 10000)
+        safetyHandler.postDelayed(safetyRunnable, 20000)
     }
 
     private fun syncData() {

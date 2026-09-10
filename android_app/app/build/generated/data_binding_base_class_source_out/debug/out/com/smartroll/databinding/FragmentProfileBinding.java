@@ -22,10 +22,16 @@ public final class FragmentProfileBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
+  public final Button btnChangeServerIp;
+
+  @NonNull
   public final Button btnLogout;
 
   @NonNull
   public final ImageView ivAvatar;
+
+  @NonNull
+  public final TextView tvProfileServerIp;
 
   @NonNull
   public final TextView tvUserInfo;
@@ -36,12 +42,15 @@ public final class FragmentProfileBinding implements ViewBinding {
   @NonNull
   public final TextView tvUserRole;
 
-  private FragmentProfileBinding(@NonNull ConstraintLayout rootView, @NonNull Button btnLogout,
-      @NonNull ImageView ivAvatar, @NonNull TextView tvUserInfo, @NonNull TextView tvUserName,
-      @NonNull TextView tvUserRole) {
+  private FragmentProfileBinding(@NonNull ConstraintLayout rootView,
+      @NonNull Button btnChangeServerIp, @NonNull Button btnLogout, @NonNull ImageView ivAvatar,
+      @NonNull TextView tvProfileServerIp, @NonNull TextView tvUserInfo,
+      @NonNull TextView tvUserName, @NonNull TextView tvUserRole) {
     this.rootView = rootView;
+    this.btnChangeServerIp = btnChangeServerIp;
     this.btnLogout = btnLogout;
     this.ivAvatar = ivAvatar;
+    this.tvProfileServerIp = tvProfileServerIp;
     this.tvUserInfo = tvUserInfo;
     this.tvUserName = tvUserName;
     this.tvUserRole = tvUserRole;
@@ -74,6 +83,12 @@ public final class FragmentProfileBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.btnChangeServerIp;
+      Button btnChangeServerIp = ViewBindings.findChildViewById(rootView, id);
+      if (btnChangeServerIp == null) {
+        break missingId;
+      }
+
       id = R.id.btnLogout;
       Button btnLogout = ViewBindings.findChildViewById(rootView, id);
       if (btnLogout == null) {
@@ -83,6 +98,12 @@ public final class FragmentProfileBinding implements ViewBinding {
       id = R.id.ivAvatar;
       ImageView ivAvatar = ViewBindings.findChildViewById(rootView, id);
       if (ivAvatar == null) {
+        break missingId;
+      }
+
+      id = R.id.tvProfileServerIp;
+      TextView tvProfileServerIp = ViewBindings.findChildViewById(rootView, id);
+      if (tvProfileServerIp == null) {
         break missingId;
       }
 
@@ -104,8 +125,8 @@ public final class FragmentProfileBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentProfileBinding((ConstraintLayout) rootView, btnLogout, ivAvatar,
-          tvUserInfo, tvUserName, tvUserRole);
+      return new FragmentProfileBinding((ConstraintLayout) rootView, btnChangeServerIp, btnLogout,
+          ivAvatar, tvProfileServerIp, tvUserInfo, tvUserName, tvUserRole);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

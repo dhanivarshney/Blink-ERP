@@ -1,0 +1,37 @@
+﻿<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Glowing Eye Outline / Blink Iris Shape -->
+    <path
+        android:strokeColor="#6366F1"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M15,60 C35,25 85,25 105,60 C85,95 35,95 15,60 Z" />
+
+    <!-- Center Iris Outer Ring -->
+    <path
+        android:strokeColor="#8B5CF6"
+        android:strokeWidth="3.5"
+        android:pathData="M60,60m-22,0a22,22 0 1,1 44,0a22,22 0 1,1 -44,0" />
+
+    <!-- Center Pupil (Glowing Core) -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M60,60m-12,0a12,12 0 1,1 24,0a12,12 0 1,1 -24,0" />
+
+    <!-- Blink / Flash Highlight Accent -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M56,54m-4,0a4,4 0 1,1 8,0a4,4 0 1,1 -8,0" />
+
+    <!-- Speed / Pulse Ray -->
+    <path
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M60,20 L60,10 M60,100 L60,110 M10,60 L2,60 M110,60 L118,60" />
+</vector>

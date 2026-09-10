@@ -1,7 +1,11 @@
 package com.smartroll.api
 
 import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -11,31 +15,32 @@ import java.util.concurrent.TimeUnit
 object ApiService {
 
     private var _serverUrl: String? = null
-    const val DEFAULT_IP = "192.168.194.186"
+    const val DEFAULT_URL = "https://actors-usgs-prairie-entertaining.trycloudflare.com"
     val serverUrl: String
-        get() = _serverUrl ?: "http://$DEFAULT_IP:5000"
+        get() = _serverUrl ?: DEFAULT_URL
 
     fun updateUrl(context: Context, newIp: String) {
-        // Robust cleanup: strip "http://"/"https://", strip any trailing
-        // slash, and strip an existing ":port" if the user already typed
-        // one — THEN always append ":5000" ourselves. This avoids the
-        // "192.168.1.11:5000:5000" double-port bug that happened when the
-        // user typed the port themselves (matching the field's example hint).
-        var cleanIp = newIp.trim()
-            .removePrefix("http://")
-            .removePrefix("https://")
-            .trimEnd('/')
+        val trimmed = newIp.trim()
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            _serverUrl = trimmed.trimEnd('/')
+        } else if (trimmed.contains(".loca.lt") || trimmed.contains(".ngrok") || trimmed.contains(".trycloudflare.com")) {
+            _serverUrl = "https://" + trimmed.trimEnd('/')
+        } else {
+            var cleanIp = trimmed
+                .removePrefix("http://")
+                .removePrefix("https://")
+                .trimEnd('/')
 
-        // If it already has a ":<port>" suffix, strip it off before we add our own.
-        val colonIndex = cleanIp.lastIndexOf(':')
-        if (colonIndex != -1) {
-            val afterColon = cleanIp.substring(colonIndex + 1)
-            if (afterColon.toIntOrNull() != null) {
-                cleanIp = cleanIp.substring(0, colonIndex)
+            val colonIndex = cleanIp.lastIndexOf(':')
+            if (colonIndex != -1) {
+                val afterColon = cleanIp.substring(colonIndex + 1)
+                if (afterColon.toIntOrNull() != null) {
+                    cleanIp = cleanIp.substring(0, colonIndex)
+                }
             }
-        }
 
-        _serverUrl = "http://$cleanIp:5000"
+            _serverUrl = "http://$cleanIp:5000"
+        }
 
         context.getSharedPreferences("smartroll_prefs", Context.MODE_PRIVATE)
             .edit()
@@ -47,15 +52,34 @@ object ApiService {
         val savedUrl = context.getSharedPreferences("smartroll_prefs", Context.MODE_PRIVATE)
             .getString("server_url", null)
         
-        // If never set, or still set to emulator loopback 10.0.2.2, override with real laptop IP
-        if (savedUrl == null || savedUrl.contains("10.0.2.2")) {
-            _serverUrl = "http://$DEFAULT_IP:5000"
+        // Auto-upgrade old / invalid URLs to current Cloudflare URL
+        if (savedUrl == null || savedUrl.contains("10.0.2.2") || savedUrl.contains("192.168.") || savedUrl.contains(".loca.lt")) {
+            _serverUrl = DEFAULT_URL
             context.getSharedPreferences("smartroll_prefs", Context.MODE_PRIVATE)
                 .edit()
                 .putString("server_url", _serverUrl)
                 .apply()
         } else {
             _serverUrl = savedUrl
+        }
+    }
+
+    fun testConnection(targetUrl: String? = null): Pair<Boolean, String> {
+        val url = (targetUrl ?: serverUrl).trimEnd('/') + "/api/health"
+        return try {
+            val req = Request.Builder()
+                .url(url)
+                .addHeader("bypass-tunnel-reminder", "true")
+                .get()
+                .build()
+            val resp = client.newCall(req).execute()
+            if (resp.isSuccessful) {
+                Pair(true, "Connected to server (HTTP ${resp.code})")
+            } else {
+                Pair(false, "Server responded with HTTP ${resp.code}")
+            }
+        } catch (e: Exception) {
+            Pair(false, e.message ?: "Connection failed")
         }
     }
 
@@ -154,6 +178,70 @@ object ApiService {
         return post("/api/notes", body)
     }
 
+    fun uploadNoteFile(
+        context: Context,
+        teacherName: String,
+        branch: String,
+        section: String,
+        subject: String,
+        title: String,
+        content: String,
+        fileUri: Uri
+    ): JSONObject? {
+        return try {
+            val contentResolver = context.contentResolver
+            val inputStream = contentResolver.openInputStream(fileUri) ?: return null
+            val fileBytes = inputStream.readBytes()
+            inputStream.close()
+
+            var fileName = "note_${System.currentTimeMillis()}.pdf"
+            if (fileUri.scheme == "content") {
+                val cursor = contentResolver.query(fileUri, null, null, null, null)
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val idx = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        if (idx != -1) {
+                            val name = it.getString(idx)
+                            if (!name.isNullOrBlank()) fileName = name
+                        }
+                    }
+                }
+            } else if (!fileUri.lastPathSegment.isNullOrBlank()) {
+                fileName = fileUri.lastPathSegment!!
+            }
+
+            val mediaType = "application/pdf".toMediaTypeOrNull()
+            val fileBody = fileBytes.toRequestBody(mediaType)
+
+            val multipartBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("teacher_name", teacherName)
+                .addFormDataPart("branch", branch)
+                .addFormDataPart("section", section)
+                .addFormDataPart("subject", subject)
+                .addFormDataPart("title", title)
+                .addFormDataPart("content", content)
+                .addFormDataPart("file", fileName, fileBody)
+                .build()
+
+            val request = Request.Builder()
+                .url("$serverUrl/api/notes/upload")
+                .addHeader("bypass-tunnel-reminder", "true")
+                .post(multipartBody)
+                .build()
+
+            val response = client.newCall(request).execute()
+            val responseBody = response.body?.string()
+            if (response.isSuccessful && responseBody != null) {
+                JSONObject(responseBody)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     fun deleteNote(noteId: Int): JSONObject? {
         return try {
             val request = Request.Builder()
@@ -191,6 +279,20 @@ object ApiService {
         }
     }
 
+    fun getTeacherAnalytics(teacher: String? = null, branch: String? = null, section: String? = null): JSONObject? {
+        return try {
+            var path = "/api/teacher/analytics?"
+            val params = mutableListOf<String>()
+            teacher?.let { params.add("teacher=" + java.net.URLEncoder.encode(it, "UTF-8")) }
+            branch?.let { params.add("branch=" + java.net.URLEncoder.encode(it, "UTF-8")) }
+            section?.let { params.add("section=" + java.net.URLEncoder.encode(it, "UTF-8")) }
+            path += params.joinToString("&")
+            get(path)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     fun updateUserPassword(userId: Int, newPassword: String): JSONObject? {
         val body = JSONObject().apply {
             put("new_password", newPassword)
@@ -213,24 +315,36 @@ object ApiService {
 
 
 
+    fun getLiveSession(sessionId: Int): JSONObject? = get("/api/session/$sessionId/live")
+
     private fun post(path: String, body: JSONObject): JSONObject? {
         return try {
             val request = Request.Builder()
                 .url("$serverUrl$path")
+                .addHeader("bypass-tunnel-reminder", "true")
                 .post(body.toString().toRequestBody(JSON))
                 .build()
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string()
             if (response.isSuccessful && responseBody != null) {
                 JSONObject(responseBody)
+            } else if (responseBody != null && responseBody.trim().startsWith("{")) {
+                try {
+                    JSONObject(responseBody).apply { put("code", response.code) }
+                } catch (e: Exception) {
+                    JSONObject().apply {
+                        put("error", response.message.ifEmpty { "Request failed (HTTP ${response.code})" })
+                        put("code", response.code)
+                    }
+                }
             } else {
                 JSONObject().apply {
-                    put("error", response.message ?: "Request failed")
+                    put("error", response.message.ifEmpty { "Request failed (HTTP ${response.code})" })
                     put("code", response.code)
                 }
             }
         } catch (e: Exception) {
-            JSONObject().apply { put("error", e.message ?: "Connection failed") }
+            JSONObject().apply { put("error", "Cannot connect to $serverUrl: ${e.message}") }
         }
     }
 
@@ -238,6 +352,7 @@ object ApiService {
         return try {
             val request = Request.Builder()
                 .url("$serverUrl$path")
+                .addHeader("bypass-tunnel-reminder", "true")
                 .get()
                 .build()
             val response = client.newCall(request).execute()
@@ -256,6 +371,7 @@ object ApiService {
         return try {
             val request = Request.Builder()
                 .url("$serverUrl$path")
+                .addHeader("bypass-tunnel-reminder", "true")
                 .get()
                 .build()
             val response = client.newCall(request).execute()

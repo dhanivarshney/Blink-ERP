@@ -60,6 +60,9 @@ public final class FragmentHomeBinding implements ViewBinding {
   public final TextView tvGreeting;
 
   @NonNull
+  public final TextView tvLiveStudents;
+
+  @NonNull
   public final TextView tvMiniBunkEmoji;
 
   @NonNull
@@ -89,10 +92,10 @@ public final class FragmentHomeBinding implements ViewBinding {
       @NonNull CardView miniBunkCard, @NonNull GridLayout quickInfoLayout,
       @NonNull TextView tvBleStatus, @NonNull TextView tvBranch, @NonNull TextView tvDateTime,
       @NonNull TextView tvDetectedCount, @NonNull TextView tvGreeting,
-      @NonNull TextView tvMiniBunkEmoji, @NonNull TextView tvMiniBunkSubtitle,
-      @NonNull TextView tvMiniBunkTitle, @NonNull TextView tvRoleTag, @NonNull TextView tvSection,
-      @NonNull TextView tvStatusTitle, @NonNull TextView tvStudentCount,
-      @NonNull TextView tvSubject) {
+      @NonNull TextView tvLiveStudents, @NonNull TextView tvMiniBunkEmoji,
+      @NonNull TextView tvMiniBunkSubtitle, @NonNull TextView tvMiniBunkTitle,
+      @NonNull TextView tvRoleTag, @NonNull TextView tvSection, @NonNull TextView tvStatusTitle,
+      @NonNull TextView tvStudentCount, @NonNull TextView tvSubject) {
     this.rootView = rootView;
     this.actionCard = actionCard;
     this.bannerViewPager = bannerViewPager;
@@ -106,6 +109,7 @@ public final class FragmentHomeBinding implements ViewBinding {
     this.tvDateTime = tvDateTime;
     this.tvDetectedCount = tvDetectedCount;
     this.tvGreeting = tvGreeting;
+    this.tvLiveStudents = tvLiveStudents;
     this.tvMiniBunkEmoji = tvMiniBunkEmoji;
     this.tvMiniBunkSubtitle = tvMiniBunkSubtitle;
     this.tvMiniBunkTitle = tvMiniBunkTitle;
@@ -215,6 +219,12 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.tvLiveStudents;
+      TextView tvLiveStudents = ViewBindings.findChildViewById(rootView, id);
+      if (tvLiveStudents == null) {
+        break missingId;
+      }
+
       id = R.id.tvMiniBunkEmoji;
       TextView tvMiniBunkEmoji = ViewBindings.findChildViewById(rootView, id);
       if (tvMiniBunkEmoji == null) {
@@ -265,8 +275,9 @@ public final class FragmentHomeBinding implements ViewBinding {
 
       return new FragmentHomeBinding((NestedScrollView) rootView, actionCard, bannerViewPager,
           btnMainAction, btnOpenStudents, btnStopAction, miniBunkCard, quickInfoLayout, tvBleStatus,
-          tvBranch, tvDateTime, tvDetectedCount, tvGreeting, tvMiniBunkEmoji, tvMiniBunkSubtitle,
-          tvMiniBunkTitle, tvRoleTag, tvSection, tvStatusTitle, tvStudentCount, tvSubject);
+          tvBranch, tvDateTime, tvDetectedCount, tvGreeting, tvLiveStudents, tvMiniBunkEmoji,
+          tvMiniBunkSubtitle, tvMiniBunkTitle, tvRoleTag, tvSection, tvStatusTitle, tvStudentCount,
+          tvSubject);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

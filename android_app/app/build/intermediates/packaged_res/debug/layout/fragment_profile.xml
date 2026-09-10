@@ -68,7 +68,31 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginVertical="20dp"
+                android:layout_marginVertical="16dp"
+                android:background="@color/card_border" />
+
+            <TextView
+                android:id="@+id/tvProfileServerIp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🌐 Server: https://blinkerp-live.loca.lt"
+                android:textColor="@color/accent"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnChangeServerIp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="⚙️ Change / Test Server IP"
+                android:textColor="@color/white" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="16dp"
                 android:background="@color/card_border" />
 
             <Button

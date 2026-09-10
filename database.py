@@ -264,20 +264,53 @@ def init_db():
 # ================================================================
 
 def register_user(name, password, role, course=None, year=None, branch=None, section=None, subject=None):
-    """Register a new teacher or student. Returns user dict or None if exists."""
+    """Register a new teacher or student. Returns user dict or updates existing."""
     with get_conn() as conn:
         existing = conn.execute(
-            "SELECT id FROM users WHERE name=? AND role=? AND course=? AND year=? AND branch=? AND section=?",
-            (name, role, course, year, branch, section),
+            "SELECT id, name, role, course, year, branch, section, subject FROM users WHERE LOWER(TRIM(name))=LOWER(TRIM(?)) AND LOWER(TRIM(role))=LOWER(TRIM(?))",
+            (name, role),
         ).fetchone()
-        if existing:
-            return None  # already registered
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         hashed = _hash_password(password)
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if existing:
+            # Update password and any details if user already exists
+            conn.execute(
+                """UPDATE users SET password=?, 
+                                   course=COALESCE(?, course), 
+                                   year=COALESCE(?, year), 
+                                   branch=COALESCE(?, branch), 
+                                   section=COALESCE(?, section), 
+                                   subject=COALESCE(?, subject) 
+                   WHERE id=?""",
+                (hashed, course, year, branch, section, subject, existing["id"]),
+            )
+            final_branch = branch or existing["branch"]
+            final_sec = section or existing["section"]
+            if role.lower() == "student" and final_branch and final_sec:
+                conn.execute(
+                    "INSERT OR IGNORE INTO students (name, branch, section) VALUES (?, ?, ?)",
+                    (name.strip(), final_branch.strip(), final_sec.strip()),
+                )
+            return {
+                "id": existing["id"],
+                "name": name,
+                "role": role,
+                "course": course or existing["course"],
+                "year": year or existing["year"],
+                "branch": final_branch,
+                "section": final_sec,
+                "subject": subject or existing["subject"],
+            }
+
         cur = conn.execute(
             "INSERT INTO users (name, password, role, course, year, branch, section, subject, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
             (name, hashed, role, course, year, branch, section, subject, now),
         )
+        if role.lower() == "student" and branch and section:
+            conn.execute(
+                "INSERT OR IGNORE INTO students (name, branch, section) VALUES (?, ?, ?)",
+                (name.strip(), branch.strip(), section.strip()),
+            )
         return {
             "id": cur.lastrowid,
             "name": name,
@@ -291,11 +324,11 @@ def register_user(name, password, role, course=None, year=None, branch=None, sec
 
 
 def login_user(name, password, role):
-    """Login by name + password + role. Returns user dict or None."""
+    """Login by name + password + role (case-insensitive name & role). Returns user dict or None."""
     with get_conn() as conn:
         hashed = _hash_password(password)
         row = conn.execute(
-            "SELECT id, name, role, course, year, branch, section, subject FROM users WHERE name=? AND password=? AND role=?",
+            "SELECT id, name, role, course, year, branch, section, subject FROM users WHERE LOWER(TRIM(name))=LOWER(TRIM(?)) AND password=? AND LOWER(TRIM(role))=LOWER(TRIM(?))",
             (name, hashed, role),
         ).fetchone()
         return dict(row) if row else None
@@ -574,6 +607,17 @@ def get_active_session_for_section(branch, section):
         return dict(row) if row else None
 
 
+def get_any_active_session_for_branch(branch):
+    """Fallback: find any active session for this branch regardless of section.
+    Used when student's section string doesn't exactly match teacher's session."""
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM sessions WHERE branch=? AND status='active' ORDER BY id DESC LIMIT 1",
+            (branch,),
+        ).fetchone()
+        return dict(row) if row else None
+
+
 def get_sessions_for_teacher(teacher_name):
     with get_conn() as conn:
         rows = conn.execute(
@@ -651,6 +695,34 @@ def get_session_by_id(session_id):
                     "marked_at": None,
                 })
         session["students"] = student_list
+        return session
+
+
+def get_session_by_id_live(session_id):
+    """Lightweight live view — only returns students who are actually Present.
+    Does NOT join the full student roster, so no fake 'Absent' entries appear."""
+    with get_conn() as conn:
+        row = conn.execute("SELECT * FROM sessions WHERE id=?", (session_id,)).fetchone()
+        if not row:
+            return None
+        session = dict(row)
+        # Only fetch attendance records (no roster join)
+        rows = conn.execute(
+            "SELECT student_name, status, mode, marked_at FROM attendance WHERE session_id=? AND status='Present'",
+            (session_id,),
+        ).fetchall()
+        present_list = [
+            {
+                "name": r["student_name"],
+                "status": "Present",
+                "method": r["mode"],
+                "marked_at": r["marked_at"],
+            }
+            for r in rows
+        ]
+        session["students"] = present_list
+        session["present_count"] = len(present_list)
+        session["total_count"] = len(present_list)
         return session
 
 
@@ -1102,6 +1174,8 @@ def get_student_full_analytics(student_name, branch=None, section=None):
         subject_stats = {}
         for s in sessions:
             sub = s.get("subject", "General") or "General"
+            if sub == "null" or not sub.strip():
+                sub = "General"
             if sub not in subject_stats:
                 subject_stats[sub] = {"total": 0, "present": 0}
             subject_stats[sub]["total"] += 1
@@ -1125,9 +1199,11 @@ def get_student_full_analytics(student_name, branch=None, section=None):
         history = []
         for s in sessions:
             m = marked_map.get(s["id"])
+            raw_sub = s.get("subject", "")
+            hist_sub = "General" if not raw_sub or raw_sub == "null" else raw_sub
             history.append({
                 "session_id": s["id"],
-                "subject": s.get("subject", ""),
+                "subject": hist_sub,
                 "teacher_name": s.get("teacher_name", ""),
                 "branch": s.get("branch", ""),
                 "section": s.get("section", ""),
@@ -1151,52 +1227,14 @@ def get_student_full_analytics(student_name, branch=None, section=None):
             "needed_classes": needed,
             "bunk_message": bunk_message,
             "subjects": subjects_list,
+            "subject_breakdown": subjects_list,
             "history": history
         }
 
 
 # ================================================================
-# CLASS NOTES & PYQ METHODS
+# PYQ EXTENSION METHODS
 # ================================================================
-
-def add_class_note(teacher_name, branch, section, subject, title, content="", file_path=None, file_name=None):
-    """Add a new class note / study material."""
-    created_at = datetime.now().strftime("%Y-%m-%d %H:%M")
-    with get_conn() as conn:
-        cur = conn.execute("""
-            INSERT INTO class_notes (teacher_name, branch, section, subject, title, content, file_path, file_name, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (teacher_name, branch, section, subject, title, content, file_path, file_name, created_at))
-        return cur.lastrowid
-
-
-def get_class_notes(teacher_name=None, branch=None, section=None, subject=None):
-    """Get list of class notes with optional filters."""
-    with get_conn() as conn:
-        query = "SELECT * FROM class_notes WHERE 1=1"
-        params = []
-        if teacher_name:
-            query += " AND teacher_name = ?"
-            params.append(teacher_name)
-        if branch:
-            query += " AND branch = ?"
-            params.append(branch)
-        if section:
-            query += " AND section = ?"
-            params.append(section)
-        if subject:
-            query += " AND subject = ?"
-            params.append(subject)
-        query += " ORDER BY id DESC"
-        rows = conn.execute(query, params).fetchall()
-        return [dict(r) for r in rows]
-
-
-def delete_class_note(note_id):
-    """Delete a class note by ID."""
-    with get_conn() as conn:
-        conn.execute("DELETE FROM class_notes WHERE id=?", (note_id,))
-        return True
 
 
 def add_pyq(teacher_name, branch, subject, title, semester=None, year=None, exam_type="PYQ", content="", file_path=None, file_name=None, drive_link=None):

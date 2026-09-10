@@ -1,4 +1,4 @@
-﻿/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════
    BlinkERP — Professional Dashboard JS
    Live BLE Session • Real-time Polling • Radar Animation
    ═══════════════════════════════════════════════════════════════ */
@@ -483,6 +483,7 @@ async function loadDashboard() {
     }
 
     // Top students
+    populateDashStudentSelect();
     const topEl = document.getElementById('topStudentsDash');
     if (!topPerformers.length) {
       topEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏆</div><strong>No data yet</strong></div>';
@@ -490,9 +491,10 @@ async function loadDashboard() {
       topEl.innerHTML = topPerformers.slice(0, 5).map((s, i) => {
         const rc = i === 0 ? 'amber' : i === 1 ? 'blue' : i === 2 ? 'purple' : 'blue';
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
-        return `<div class="list-item">
+        const safeName = encodeURIComponent(s.student_name);
+        return `<div class="list-item" onclick="openStudentAnalytics('${safeName}')" style="cursor:pointer;" title="Click to view full analytics">
           <div class="item-icon ${rc}">${medal}</div>
-          <div class="item-info"><strong>${s.student_name}</strong><small>${s.present_count}/${s.total_sessions} sessions</small></div>
+          <div class="item-info"><strong>${s.student_name}</strong><small>${s.present_count}/${s.total_sessions} sessions • Click for Analytics 📊</small></div>
           <div style="font:700 18px 'Inter';color:var(--green);">${s.attendance_percent}%</div>
         </div>`;
       }).join('');
@@ -1001,16 +1003,16 @@ function exportCSV() {
   });
 }
 
-// ─── STUDENTS LIST ─────────────────────────────────────────────
+// ─── STUDENTS LIST & INDIVIDUAL ANALYTICS ─────────────────────
+window._cachedStudents = [];
+
 async function loadStudentsList() {
   try {
-    // Fetch from both sources: students table (admin-added/attendance) AND users table (app-registered)
     const [students, registeredUsers] = await Promise.all([
       api('GET', '/api/admin/students').catch(() => []),
       api('GET', '/api/admin/users?role=student').catch(() => [])
     ]);
 
-    // Merge: students table is primary, add any app-registered students not already present
     const allStudents = [...students];
     const existingNames = new Set(students.map(s => s.name.toLowerCase()));
     for (const u of registeredUsers) {
@@ -1026,28 +1028,186 @@ async function loadStudentsList() {
       }
     }
 
-    const el = document.getElementById('studentsList');
-    const countBadge = document.getElementById('studentCountBadge');
-    if (countBadge) countBadge.textContent = allStudents.length;
+    window._cachedStudents = allStudents;
+    renderStudentsList(allStudents);
+    populateDashStudentSelect(allStudents);
+  } catch (e) { console.error(e); }
+}
 
-    if (!allStudents.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🎓</div><strong>No students in database</strong><p>Add students from Admin panel or register via Android app</p></div>';
-      return;
-    }
-    el.innerHTML = allStudents.map(s => {
-      const initials = s.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-      const isApp = s.source === 'app';
-      return `<div class="list-item">
+function renderStudentsList(list) {
+  const el = document.getElementById('studentsList');
+  const countBadge = document.getElementById('studentCountBadge');
+  if (countBadge) countBadge.textContent = `${list.length} Students`;
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🎓</div><strong>No students found</strong><p>Register students via Android app or add from Admin panel</p></div>';
+    return;
+  }
+
+  el.innerHTML = list.map(s => {
+    const initials = s.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const isApp = s.source === 'app';
+    const dept = s.department || s.branch || '—';
+    const sec = s.section || '—';
+    const roll = s.roll || 'No Roll';
+    const safeName = encodeURIComponent(s.name);
+    const safeDept = encodeURIComponent(dept);
+    const safeSec = encodeURIComponent(sec);
+
+    return `<div class="list-item" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;" onclick="openStudentAnalytics('${safeName}','${safeDept}','${safeSec}')">
+      <div style="display:flex; align-items:center; gap:14px;">
         <div class="item-icon ${isApp ? 'green' : 'blue'}">${initials}</div>
         <div class="item-info">
           <strong>${s.name}</strong>
-          <small>${s.department || '—'} • ${s.section || '—'} • ${s.roll || 'No Roll'}</small>
+          <small>${dept} · Sec ${sec} • Roll: ${roll}</small>
         </div>
-        ${isApp ? '<span class="status-pill auto">📱 App</span>' : ''}
-        ${s.ble_address ? `<span class="status-pill auto">⚡ ${s.ble_address}</span>` : ''}
-      </div>`;
-    }).join('');
-  } catch (e) { console.error(e); }
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        ${isApp ? '<span class="status-pill auto">📱 App User</span>' : ''}
+        <button class="btn-glow sm" onclick="event.stopPropagation(); openStudentAnalytics('${safeName}','${safeDept}','${safeSec}')" style="font-size:12px; padding:6px 14px;">📊 Analytics →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterStudentsList(query) {
+  const q = (query || '').toLowerCase().trim();
+  if (!q) {
+    renderStudentsList(window._cachedStudents || []);
+    return;
+  }
+  const filtered = (window._cachedStudents || []).filter(s =>
+    (s.name || '').toLowerCase().includes(q) ||
+    (s.department || s.branch || '').toLowerCase().includes(q) ||
+    (s.section || '').toLowerCase().includes(q) ||
+    (s.roll || '').toLowerCase().includes(q)
+  );
+  renderStudentsList(filtered);
+}
+
+// ─── STUDENT ANALYTICS MODAL LOGIC ─────────────────────────────
+async function openStudentAnalytics(rawName, rawBranch, rawSection) {
+  const name = decodeURIComponent(rawName || '');
+  const branch = decodeURIComponent(rawBranch || '');
+  const section = decodeURIComponent(rawSection || '');
+
+  const modal = document.getElementById('studentAnalyticsModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  document.getElementById('samStudentName').textContent = `${name}'s Analytics`;
+  document.getElementById('samStudentClass').textContent = (branch && branch !== '—') ? `${branch} - Section ${section}` : 'Student Attendance Profile';
+  document.getElementById('samLoader').style.display = 'block';
+  document.getElementById('samContent').style.display = 'none';
+
+  try {
+    let url = `/api/student/analytics?name=${encodeURIComponent(name)}`;
+    if (branch && branch !== '—') url += `&branch=${encodeURIComponent(branch)}`;
+    if (section && section !== '—') url += `&section=${encodeURIComponent(section)}`;
+
+    const data = await api('GET', url);
+    document.getElementById('samLoader').style.display = 'none';
+    document.getElementById('samContent').style.display = 'block';
+
+    const pct = data.attendance_pct || 0;
+    const isSafe = data.eligibility_status === 'Safe';
+    const presentCount = data.present_count || 0;
+    const totalSessions = data.total_sessions || 0;
+    const absentCount = data.absent_count !== undefined ? data.absent_count : (totalSessions - presentCount);
+
+    const pctEl = document.getElementById('samPct');
+    pctEl.textContent = `${pct}%`;
+    pctEl.style.color = isSafe ? '#10b981' : '#ef4444';
+
+    const badge = document.getElementById('samStatusBadge');
+    badge.textContent = isSafe ? 'SAFE' : 'SHORTAGE';
+    badge.style.background = isSafe ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
+    badge.style.color = isSafe ? '#10b981' : '#ef4444';
+
+    document.getElementById('samRatio').textContent = `${presentCount} / ${totalSessions} classes attended`;
+    document.getElementById('samEligibility').textContent = isSafe ? 'Eligible for Exams ✅' : 'Shortage Warning (<75%) ⚠️';
+    document.getElementById('samEligibility').style.color = isSafe ? '#10b981' : '#ef4444';
+
+    document.getElementById('samBunkMsg').textContent = data.bunk_message || (isSafe ? 'Great job! Attendance is safely above the 75% requirement.' : 'Attendance is below 75%. Student must attend upcoming classes.');
+
+    document.getElementById('samTotal').textContent = totalSessions;
+    document.getElementById('samPresent').textContent = presentCount;
+    document.getElementById('samAbsent').textContent = absentCount;
+
+    // Subject breakdown
+    const subContainer = document.getElementById('samSubjectsList');
+    if (data.subject_breakdown && data.subject_breakdown.length) {
+      subContainer.innerHTML = data.subject_breakdown.map(sub => {
+        const sPct = sub.percentage || 0;
+        const subSafe = sPct >= 75;
+        return `<div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <strong style="color:var(--text); font-size:14px;">${sub.subject}</strong>
+            <div style="font-size:12px; color:var(--muted); margin-top:2px;">${sub.present} / ${sub.total} attended (${sub.absent} missed)</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:16px; font-weight:700; color:${subSafe ? '#10b981' : '#ef4444'};">${sPct}%</div>
+            <span class="badge" style="font-size:10px; background:${subSafe ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color:${subSafe ? '#10b981' : '#ef4444'};">${subSafe ? 'SAFE' : 'LOW'}</span>
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      subContainer.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; padding:12px;">No subject data available yet.</div>';
+    }
+
+    // History list
+    const histContainer = document.getElementById('samHistoryList');
+    if (data.history && data.history.length) {
+      histContainer.innerHTML = data.history.map(h => {
+        const isPres = h.status === 'Present';
+        return `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px; font-size:13px;">
+          <div>
+            <strong style="color:var(--text);">${h.subject || 'Session'}</strong>
+            <span style="color:var(--muted); margin-left:8px; font-size:12px;">${h.date || ''}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="status-pill ${isPres ? 'active' : 'ended'}" style="font-size:11px;">${isPres ? '✅ Present' : '❌ Absent'}</span>
+            ${h.mode ? `<span style="font-size:11px; color:var(--muted);">${h.mode}</span>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      histContainer.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; padding:12px;">No history records yet.</div>';
+    }
+  } catch (err) {
+    document.getElementById('samLoader').innerHTML = `<p style="color:#ef4444; padding:20px;">Failed to load analytics: ${err.message}</p>`;
+  }
+}
+
+function closeStudentAnalyticsModal() {
+  document.getElementById('studentAnalyticsModal')?.classList.add('hidden');
+}
+
+async function populateDashStudentSelect(studentsList) {
+  const sel = document.getElementById('dashStudentSelect');
+  if (!sel) return;
+  try {
+    const list = studentsList || await api('GET', '/api/students').catch(() => []);
+    sel.innerHTML = '<option value="">-- Choose a Student to Inspect Analytics --</option>' +
+      list.map(s => {
+        const d = s.department || s.branch || '';
+        const sec = s.section || '';
+        return `<option value="${encodeURIComponent(s.name)}" data-branch="${encodeURIComponent(d)}" data-section="${encodeURIComponent(sec)}">${s.name} (${d ? d + '-' : ''}${sec || 'All'})</option>`;
+      }).join('');
+  } catch (e) {}
+}
+
+function viewSelectedStudentAnalytics() {
+  const sel = document.getElementById('dashStudentSelect');
+  if (!sel || !sel.value) {
+    alert('Please choose a student from the dropdown first.');
+    return;
+  }
+  const option = sel.options[sel.selectedIndex];
+  const branch = option?.dataset?.branch || '';
+  const section = option?.dataset?.section || '';
+  openStudentAnalytics(sel.value, branch, section);
 }
 
 // ─── SESSIONS LIST ─────────────────────────────────────────────
@@ -1173,9 +1333,10 @@ async function loadAnalytics() {
       topEl.innerHTML = topPerformers.map((s, i) => {
         const rc = i === 0 ? 'amber' : i === 1 ? 'blue' : i === 2 ? 'purple' : 'blue';
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
-        return `<div class="list-item">
+        const safeName = encodeURIComponent(s.student_name);
+        return `<div class="list-item" onclick="openStudentAnalytics('${safeName}')" style="cursor:pointer;" title="Click to view full analytics">
           <div class="item-icon ${rc}">${medal}</div>
-          <div class="item-info"><strong>${s.student_name}</strong><small>${s.present_count}/${s.total_sessions} sessions</small></div>
+          <div class="item-info"><strong>${s.student_name}</strong><small>${s.present_count}/${s.total_sessions} sessions • Click for Analytics 📊</small></div>
           <div style="font:700 16px 'Inter';color:var(--green);">${s.attendance_percent}%</div>
         </div>`;
       }).join('');
@@ -1202,15 +1363,22 @@ async function loadNotes() {
       const ext = hasFile ? n.file_name.split('.').pop().toLowerCase() : '';
       const iconMap = { pdf: '📕', doc: '📘', docx: '📘', ppt: '📊', pptx: '📊', txt: '📄', png: '🖼️', jpg: '🖼️', jpeg: '🖼️' };
       const iconColor = { pdf: 'red', doc: 'blue', docx: 'blue', ppt: 'purple', pptx: 'purple', txt: 'green', png: 'amber', jpg: 'amber', jpeg: 'amber' };
-      return `<div class="list-item">
-        <div class="item-icon ${iconColor[ext] || 'blue'}">${iconMap[ext] || '📝'}</div>
-        <div class="item-info">
-          <strong>${n.title}</strong>
-          <small>${n.subject} • ${n.branch}-${n.section} • ${n.created_at || ''}</small>
+      return `<div class="list-item" style="padding:14px; margin-bottom:10px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:flex-start; gap:14px;">
+        <div class="item-icon ${iconColor[ext] || 'blue'}" style="font-size:24px; min-width:40px; text-align:center; padding-top:4px;">${iconMap[ext] || '📝'}</div>
+        <div class="item-info" style="flex:1;">
+          <strong style="font-size:15px; color:#fff; display:block;">${n.title}</strong>
+          <small style="color:var(--muted); font-size:12px; display:block; margin-top:2px;">
+            ${n.subject || 'General'} • ${n.branch || 'All'}-${n.section || 'All'} • By ${n.teacher_name || 'Teacher'} • ${n.created_at || ''}
+          </small>
+          ${n.content ? `<p style="margin:8px 0 0; font-size:13px; color:#cbd5e1; line-height:1.4;">${n.content}</p>` : ''}
+          ${hasFile ? `<div style="margin-top:10px;">
+            <a href="/api/notes/download/${n.id}" target="_blank" style="display:inline-flex; align-items:center; gap:8px; background:#1e293b; color:#38bdf8; border:1px solid #334155; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:600; text-decoration:none;">
+              <span>📕 Open PDF:</span> <strong>${n.file_name}</strong> <span>⇩</span>
+            </a>
+          </div>` : ''}
         </div>
-        <div class="item-actions">
-          ${hasFile ? `<a href="/api/notes/download/${n.id}" class="btn-sm" style="color:var(--blue);">⇩</a>` : ''}
-          ${currentUser?.role !== 'student' ? `<button class="btn-x" onclick="deleteNote(${n.id})" style="font-size:11px;">✕</button>` : ''}
+        <div class="item-actions" style="margin-left:auto;">
+          ${currentUser?.role !== 'student' ? `<button class="btn-x" onclick="deleteNote(${n.id})" style="font-size:14px; padding:6px 10px; color:#ef4444; border-radius:6px;" title="Delete Note">✕</button>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -1240,6 +1408,7 @@ async function uploadNote() {
       fd.append('section', section);
       fd.append('subject', subject);
       fd.append('title', title);
+      fd.append('content', content);
       fd.append('file', selectedFile);
       const res = await fetch('/api/notes/upload', { method: 'POST', body: fd });
       const json = await res.json();
@@ -1547,6 +1716,7 @@ async function delUser(id) {
   if (!confirm('Delete this user account permanently?')) return;
   await api('DELETE', `/api/admin/users/${id}`);
   loadUserTable();
+  loadStuTable();
 }
 
 async function adminCreateUser() {
@@ -1570,6 +1740,7 @@ async function adminCreateUser() {
     document.getElementById('adminNewSection').value = '';
     document.getElementById('adminNewSubject').value = '';
     loadUserTable();
+    loadStuTable();
   } catch (e) {
     alert(e.message || 'Failed to create user');
   }
